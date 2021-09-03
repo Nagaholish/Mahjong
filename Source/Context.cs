@@ -103,6 +103,7 @@ namespace Mahjong
         public IEnumerable<Player> GetPlayers()
         {
             return _players;
+
         }
 
         public PaiManager GetPaiManager()
