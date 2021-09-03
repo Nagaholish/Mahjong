@@ -1,0 +1,251 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+
+namespace Mahjong
+{
+    public class Mentsu : List<DistributedPai>
+    {
+        public Mentsu()
+            : base(capacity: 4)
+        {
+
+        }
+
+        /// <summary>
+        /// パイの追加
+        /// 引数はp1から詰めてもらう
+        /// </summary>
+        /// <param name="p1"></param>
+        /// <param name="p2"></param>
+        /// <param name="p3"></param>
+        /// <param name="p4"></param>
+        public void AddPai(DistributedPai p1, DistributedPai p2, DistributedPai p3, DistributedPai p4)
+        {
+            if (p1 == null) throw new System.ArgumentNullException("p1 is null.");
+            if (p1 != null && p2 == null && p3 != null && p4 == null) throw new System.ArgumentNullException("p2 is null. but p3 is not null.");  //  p2がnullなのに、p3がnullでない
+            if (p1 != null && p2 == null && p3 == null && p4 != null) throw new System.ArgumentNullException("p2 is null. but p4 is not null.");  //  p2がnullなのに、p4がnullでない
+            if (p1 != null && p2 != null && p3 == null && p4 != null) throw new System.ArgumentNullException("p3 is null. but p4 is not null.");  //  p3がnullなのに、p4がnullでない
+
+            Add(p1);
+            if (p2 != null) Add(p2);
+            if (p3 != null) Add(p3);
+            if (p4 != null) Add(p4);
+        }
+
+        /// <summary>
+        /// List型を継承しているので、安易にAddさせないための措置
+        /// 通常はAddPaiを使う
+        /// </summary>
+        /// <param name="pai"></param>
+        private new void Add(DistributedPai pai)
+        {
+            base.Add(pai);
+        }
+
+        /// <summary>
+        /// すべて同じ柄か
+        /// ただし2枚以上ある時にのみ、呼出可能とする
+        /// </summary>
+        public bool IsSameGroup
+        {
+            get
+            {
+                if (Count < 2) throw new System.Exception("count must be 2 or over.");
+
+                var g = base[0].Group;
+                foreach (var e in this)
+                {
+                    if (g != e.Group) { return false; }
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// シュンツか？
+        /// </summary>
+        public bool IsShuntsu
+        {
+            get
+            {
+                //  シュンツは3つで成立するので3つ以外ならfalse
+                if (base.Count != 3)
+                {
+                    return false;
+                }
+                //  シュンツはマンズ、ピンズ、ソウズのみで成立するので字牌ならfalse
+                if (base[0].Group == Group.Jihai
+                    || base[1].Group == Group.Jihai
+                    || base[2].Group == Group.Jihai)
+                {
+                    return false;
+                }
+                //  ズがそろっていないならfalse
+                if (!IsSameGroup)
+                {
+                    return false;
+                }
+                //  2つ目3つ目のパイが連続になっていないならfalse
+                var n1 = base[0].Id;
+                var n2 = n1 + 1;
+                var n3 = n1 + 2;
+                if (base[1].Id != n2
+                    || base[2].Id != n3)
+                {
+                    return false;
+                }
+                //  シュンツである
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 刻子か？
+        /// </summary>
+        public bool IsKotsu
+        {
+            get
+            {
+                //  3つでなければならない
+                if (Count != 3) return false;
+                //  同じズでなければならない
+                if (!IsSameGroup) return false;
+                //  同じ数字でなければならない
+                if (base[0].Id != base[1].Id || base[0].Id != base[2].Id) return false;
+                //  刻子である
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 暗刻か？
+        /// </summary>
+        public bool IsAnnko
+        {
+            get
+            {
+                //  刻子でなければならない
+                if (!IsKotsu) return false;
+                //  メンゼンでなければならない
+                if (base[0].IsTrashed || base[1].IsTrashed || base[2].IsTrashed) return false;
+                //  暗刻である
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 槓子か？
+        /// </summary>
+        public bool IsKantsu
+        {
+            get
+            {
+                //  4つでなければならない
+                if (Count != 4) return false;
+                //  同じズでなければならない
+                if (!IsSameGroup) return false;
+                //  同じ数字でなければならない
+                if (base[0].Id != base[1].Id || base[0].Id != base[2].Id || base[0].Id != base[3].Id) return false;
+                //  槓子である
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 暗槓か？
+        /// </summary>
+        public bool IsAnnkantsu
+        {
+            get
+            {
+                //  槓子でなければならない
+                if (!IsKantsu) return false;
+                //  メンゼンでなければならない
+                if (base[0].IsTrashed || base[1].IsTrashed || base[2].IsTrashed || base[3].IsTrashed) return false;
+                //  暗槓である
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// アタマか？
+        /// </summary>
+        public bool IsHead
+        {
+            get
+            {
+                //  2つでなければならない
+                if (Count != 2) return false;
+                //  同じズ、同じ数字でなければならない
+                if (!IsSameGroup) return false;
+                if (base[0].Id != base[1].Id) return false;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 鳴いたメンツか？
+        /// </summary>
+        public bool IsFuro
+        {
+            get
+            {
+                //  3つ以上でなければならない
+                if (Count < 3) return false;
+                //  捨てられていないといけない
+                foreach(var p in this)
+                {
+                    if (!p.IsTrashed)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// ヤオチュー牌のメンツか？
+        /// </summary>
+        public bool IsYaochuu
+        {
+            get
+            {
+                //  シュンツなら1、9を含まなければならない
+                if (IsShuntsu)
+                {
+                    if (base[0].Id == Id.N1 || base[2].Id == Id.N9)
+                    {
+                        return true;
+                    }
+                }
+                //  アタマ、刻子、槓子なら1、9、字牌でなければならない
+                else if (IsHead || IsKotsu || IsKantsu)
+                {
+                    if (base[0].Group == Group.Jihai)
+                    {
+                        return true;
+                    }
+                    else if (base[0].Id == Id.N1 || base[0].Id == Id.N9)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+
+
+    public class MentsuList : List<Mentsu>
+    {
+        public MentsuList()
+            :base (capacity: 4 + 1) //  ４メンツ＋１アタマ
+        {
+
+        }
+
+        
+    }
+}
+
