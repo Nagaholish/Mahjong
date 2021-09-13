@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mahjong
 {
@@ -26,10 +27,10 @@ namespace Mahjong
             if (p1 != null && p2 == null && p3 == null && p4 != null) throw new System.ArgumentNullException("p2 is null. but p4 is not null.");  //  p2がnullなのに、p4がnullでない
             if (p1 != null && p2 != null && p3 == null && p4 != null) throw new System.ArgumentNullException("p3 is null. but p4 is not null.");  //  p3がnullなのに、p4がnullでない
 
-            Add(p1);
-            if (p2 != null) Add(p2);
-            if (p3 != null) Add(p3);
-            if (p4 != null) Add(p4);
+            base.Add(p1);
+            if (p2 != null) base.Add(p2);
+            if (p3 != null) base.Add(p3);
+            if (p4 != null) base.Add(p4);
         }
 
         /// <summary>
@@ -37,9 +38,10 @@ namespace Mahjong
         /// 通常はAddPaiを使う
         /// </summary>
         /// <param name="pai"></param>
-        private new void Add(DistributedPai pai)
+        [System.Obsolete]
+        public new void Add(DistributedPai pai)
         {
-            base.Add(pai);
+            throw new System.NotSupportedException();
         }
 
         /// <summary>
@@ -59,6 +61,21 @@ namespace Mahjong
                 }
                 return true;
             }
+        }
+        public bool IsSame(Mentsu m)
+        {
+            if (m.Count() != this.Count())
+            {
+                return false;
+            }
+            for (int i=0; i< m.Count(); ++i)
+            {
+                if (!m[i].IsSame(this[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -186,21 +203,20 @@ namespace Mahjong
         /// <summary>
         /// 鳴いたメンツか？
         /// </summary>
-        public bool IsFuro
+        public bool IsNaki
         {
             get
             {
                 //  3つ以上でなければならない
                 if (Count < 3) return false;
-                //  捨てられていないといけない
-                foreach(var p in this)
+                //  シュンツかコーツかカンツでなければいけない
+                if (!(IsShuntsu || IsKantsu || IsKotsu))
                 {
-                    if (!p.IsTrashed)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                return true;
+                //  捨てられていないといけない
+                var naki = this.Any(p => p.IsTrashed);
+                return naki;
             }
         }
 
@@ -234,18 +250,78 @@ namespace Mahjong
                 return false;
             }
         }
+
+        public bool IsAgariMentsu
+        {
+            get
+            {
+                bool f = false;
+                foreach(var p in this)
+                {
+                    if (p.IsRonAgari || p.IsTsumoAgari)
+                    {
+                        f = true;
+                        break;
+                    }
+                }
+                if (Count < 2) throw new System.Exception();    //  不正な構成
+                return f;
+            }
+        }
     }
 
 
     public class MentsuList : List<Mentsu>
     {
         public MentsuList()
-            :base (capacity: 4 + 1) //  ４メンツ＋１アタマ
+            : base(capacity: 4 + 1) //  ４メンツ＋１アタマ
         {
 
         }
+        public Mentsu AgariMentsu
+        {
+            get
+            {
+                foreach (var m in this)
+                {
+                    if (m.IsAgariMentsu)
+                    {
+                        return m;
+                    }
+                }
+                throw new System.Exception();
+            }
+        }
 
-        
+        public bool HasKotsuOrKantsu
+        {
+            get
+            {
+                foreach(var m in this)
+                {
+                    if (m.IsKantsu || m.IsKotsu)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+
+    public class AgariPattern
+    {
+        public void Add(MentsuList pattern)
+        {
+            _patterns.Add(pattern);
+        }
+
+        public void Reset()
+        {
+            _patterns.Clear();
+        }
+
+        private List<MentsuList> _patterns = new List<MentsuList>();
     }
 }
 
