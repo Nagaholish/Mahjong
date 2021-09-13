@@ -8,10 +8,12 @@ namespace Mahjong
     /// </summary>
     public enum Group
     {
-        Manz,       //  マンズ
+        Manz = 0,   //  マンズ
         Pinz,       //  ピンズ
         Souz,       //  ソウズ
         Jihai,      //  字牌
+
+        Invalid = -1,
     }
 
     /// <summary>
@@ -38,7 +40,7 @@ namespace Mahjong
         Hatsu,      //  撥
         Chun,       //  中
 
-        
+        Invalid = -1,
     }
 
     /// <summary>
@@ -92,12 +94,12 @@ namespace Mahjong
         /// <summary>
         /// 通常の所持数
         /// </summary>
-        DefaultHolderCount  = 3 * 4 + 2,    //  1メンツ(3枚) * 4 + アタマ
+        DefaultHolderCount = 3 * 4 + 2,    //  1メンツ(3枚) * 4 + アタマ
 
         /// <summary>
         /// 最大所持数
         /// </summary>
-        MaxHolderCount      = 16 + 2,       //  槓子(4枚) * 4 + アタマ
+        MaxHolderCount = 16 + 2,       //  槓子(4枚) * 4 + アタマ
     }
     
 

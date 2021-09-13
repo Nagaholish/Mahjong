@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 
 namespace Mahjong
@@ -23,20 +23,33 @@ namespace Mahjong
                 _players[i] = p;
             }
             _paiManager = new PaiManager();
-            _paiManager.Initialize((int)System.DateTime.UtcNow.Ticks);  //TODO
         }
 
         /// <summary>
-        /// “Œê=0
-        /// “ìê=1
-        /// ¼ê=2
-        /// –kê=3
+        /// æ±å ´=0
+        /// å—å ´=1
+        /// è¥¿å ´=2
+        /// åŒ—å ´=3
         /// </summary>
         public int Field { get; private set; }
+        public Id FieldToId
+        { 
+            get
+            {
+                switch (Field) 
+                {
+                    case 0: return Id.Ton;
+                    case 1: return Id.Nan;
+                    case 2: return Id.Sha;
+                    case 3: return Id.Pei;
+                }
+                throw new System.Exception();
+            }
+        }
         /// <summary>
-        /// ‹Ç
-        /// “Œˆê‹Ç=Field==0 && Kyoku==0
-        /// “ìƒI[ƒ‰ƒX=Field==1 && Kyoku==3
+        /// å±€
+        /// æ±ä¸€å±€=Field==0 && Kyoku==0
+        /// å—ã‚ªãƒ¼ãƒ©ã‚¹=Field==1 && Kyoku==3
         /// </summary>
         public int Kyoku { get; private set; }
         public int Honba { get; private set; }
@@ -45,12 +58,23 @@ namespace Mahjong
         public int CurrentTurnPlayer { get; private set; }
         public int CurrentOyaPlayer { get; private set; }
         public int[] WinnerPlayers { get; private set; }
-        public int WinnerNearestPlayer { get; private set; }
+        public Id PlayerToId(int index)
+        {
+            var oya = CurrentOyaPlayer;
+            for (int i=0; i< PlayerCount; ++i)
+            {
+                if ((oya + i) % PlayerCount == index)
+                {
+                    return Id.Ton + i;
+                }
+            }
+            throw new System.Exception();
+        }
 
         public void NextTurn()
         {
             CurrentTurnPlayer += 1;
-            CurrentTurnPlayer %= 4;
+            CurrentTurnPlayer %= _players.Length;
             ++TurnCount;
         }
 
@@ -71,18 +95,20 @@ namespace Mahjong
                 }
                 Honba = 0;
                 CurrentOyaPlayer += 1;
-                CurrentOyaPlayer %= 4;
+                CurrentOyaPlayer %= _players.Length;
                 CurrentTurnPlayer = CurrentOyaPlayer;
             }
         }
         public bool IsEndKyoku()
         {
-            //  —¬‹Ç or ã‚ª‚Á‚½l‚ª‚¢‚½
+            //  æµå±€
+            //  TODO    ä¸ŠãŒã£ãŸäººãŒã„ãŸ
             return GetPaiManager().IsEmpty();
         }
         public bool IsEndHanchan()
         {
-            //  ƒI[ƒ‰ƒX or ‚ÍƒRƒŠ
+            //  ã‚ªãƒ¼ãƒ©ã‚¹
+            //  TODO    ã¯ã‚³ãƒª
             return Field == 1 && Kyoku == 3;
         }
 
@@ -90,7 +116,7 @@ namespace Mahjong
         {
             get
             {
-                if (_players == null) { return 0; }
+                if (_players == null) { throw new System.Exception(); }
                 return _players.Length;
             }
         }

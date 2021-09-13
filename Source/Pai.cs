@@ -25,6 +25,15 @@ namespace Mahjong
                 return (int)Group * 100 + (int)Id;
             }
         }
+
+        public bool IsSame(Pai p)
+        {
+            return IsSame(p.Group, p.Id);
+        }
+        public bool IsSame(Group g, Id i)
+        {
+            return Group == g && Id == i;
+        }
     }
 
     /// <summary>
@@ -47,6 +56,8 @@ namespace Mahjong
         {
             IsTsumo = false;
             IsTrashed = false;
+            SerialFuro = 0;
+            _statusAgari = StatusAgari.None;
         }
         public bool IsTrashed
         {
@@ -64,6 +75,34 @@ namespace Mahjong
         }
 
         public void Tsumo() { IsTsumo = true; }
+
+
+        public bool IsFuro
+        {
+            get { return SerialFuro != 0; }
+        }
+        public int SerialFuro 
+        {
+            get;
+            private set;
+        }
+        public void Furo(int serial) { SerialFuro = serial; }
+
+        private enum StatusAgari
+        {
+            None = 0,
+            TsumoAgari = 1,
+            RonAgari = 2,
+        }
+        private StatusAgari _statusAgari = StatusAgari.None;
+        public void SetAgari(bool tsumoAgari)
+        {
+            if (tsumoAgari) _statusAgari = StatusAgari.TsumoAgari;
+            else _statusAgari = StatusAgari.RonAgari;
+        }
+        public bool IsTsumoAgari { get { return _statusAgari == StatusAgari.TsumoAgari; } }
+        public bool IsRonAgari { get { return _statusAgari == StatusAgari.RonAgari; } }
+        public bool IsAgari { get { return _statusAgari != StatusAgari.None; } }
     }
 
 
