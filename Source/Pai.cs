@@ -16,6 +16,7 @@ namespace Mahjong
         {
             Group = g;
             Id = i;
+            CheckValidation();
         }
 
         public int Priority
@@ -33,6 +34,24 @@ namespace Mahjong
         public bool IsSame(Group g, Id i)
         {
             return Group == g && Id == i;
+        }
+
+        private void CheckValidation()
+        {
+            if (Group == Group.Jihai)
+            {
+                if (Id <= Id.N9)
+                {
+                    throw new System.Exception();
+                }
+            }
+            else if (Group <= Group.Manz && Group <= Group.Souz)
+            {
+                if (Id >= Id.Ton)
+                {
+                    throw new System.Exception();
+                }
+            }
         }
     }
 
@@ -171,5 +190,45 @@ namespace Mahjong
         }
     }
 
+    public static class PaiExtention
+    {
+        private static Dictionary<Group, string> _shortGroupString = new Dictionary<Group, string>()
+        {
+            { Group.Manz, "M"},
+            { Group.Pinz, "P"},
+            { Group.Souz, "S"},
+            { Group.Jihai, "J"},
+            { Group.Invalid, "x"},
+        };
+        private static Dictionary<Id, string> _shortIdString = new Dictionary<Id, string>()
+        {
+            { Id.N1, "1" },
+            { Id.N2, "2" },
+            { Id.N3, "3" },
+            { Id.N4, "4" },
+            { Id.N5, "5" },
+            { Id.N6, "6" },
+            { Id.N7, "7" },
+            { Id.N8, "8" },
+            { Id.N9, "9" },
+            { Id.Chun, "C" },
+            { Id.Haku, " " },
+            { Id.Hatsu, "H" },
+            { Id.Ton, "T" },
+            { Id.Nan, "N" },
+            { Id.Sha, "S" },
+            { Id.Pei, "P" },
+            { Id.Invalid, "x" },
+        };
+        public static string ToShortString(this Pai p)
+        {
+            return string.Format($"{_shortGroupString[p.Group]}{_shortIdString[p.Id]}");
+        }
 
+
+        public static int CompareTo(this Pai p, Pai o)
+        {
+            return p.Priority.CompareTo(o.Priority);
+        }
+    }
 }

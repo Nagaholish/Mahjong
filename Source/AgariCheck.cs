@@ -28,17 +28,17 @@ namespace Mahjong
             return false;
         }
 
-        public bool IsOKOfKokushimusou(IEnumerable<DistributedPai> pais, ref AgariPattern pattern)
+        public bool IsOKOfKokushimusou(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             //  TODO
             return false;
         }
-        public bool IsOKOfChitoitsu(IEnumerable<DistributedPai> pais, ref AgariPattern pattern)
+        public bool IsOKOfChitoitsu(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             //  TODO
             return false;
         }
-        public bool IsOKOfOtherwise(IEnumerable<DistributedPai> pais, ref AgariPattern pattern)
+        public bool IsOKOfOtherwise(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             bool ret = false;
 
@@ -53,7 +53,6 @@ namespace Mahjong
             {
                 var mentsuList = new MentsuList();
                 var mentsuHead = new Mentsu();
-                var agariPattern = new AgariPattern();
                 foreach (var pai in paisWithoutFuro)
                 {
                     //  アタマを決める
@@ -84,7 +83,7 @@ namespace Mahjong
                                 mentsuList.Concat(furoOnly);
 
                                 //  アガリパターン登録
-                                agariPattern.Add(mentsuList);
+                                agariPattern.CopyIfNotContained(mentsuList);
                             }
                         }
                     }
@@ -106,7 +105,7 @@ namespace Mahjong
                                 mentsuList.Concat(furoOnly);
 
                                 //  アガリパターン登録
-                                agariPattern.Add(mentsuList);
+                                agariPattern.CopyIfNotContained(mentsuList);
                             }
                         }
                     }
@@ -128,7 +127,7 @@ namespace Mahjong
                                 mentsuList.Concat(furoOnly);
 
                                 //  アガリパターン登録
-                                agariPattern.Add(mentsuList);
+                                agariPattern.CopyIfNotContained(mentsuList);
                             }
                         }
                     }
@@ -150,7 +149,7 @@ namespace Mahjong
                                 mentsuList.Concat(furoOnly);
 
                                 //  アガリパターン登録
-                                agariPattern.Add(mentsuList);
+                                agariPattern.CopyIfNotContained(mentsuList);
                             }
                         }
                     }
@@ -329,6 +328,7 @@ namespace Mahjong
                     e = ee;
 
                     UnityEngine.Debug.Assert(mentsu != null);
+                    mentsu.Sort((a, b) => a.CompareTo(b));
                     mentsuList.Add(mentsu);
                 }
                 g = p.Group;

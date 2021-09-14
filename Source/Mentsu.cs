@@ -274,7 +274,8 @@ namespace Mahjong
     public class MentsuList : List<Mentsu>
     {
         public MentsuList()
-            : base(capacity: 4 + 1) //  ４メンツ＋１アタマ
+            //: base(capacity: 4 + 1) //  ４メンツ＋１アタマ
+            : base(capacity: 7 * 2) //  七対子対策
         {
 
         }
@@ -307,20 +308,87 @@ namespace Mahjong
                 return false;
             }
         }
+
+        public static bool IsSameMentsu(MentsuList lhs, MentsuList rhs)
+        {
+            if (lhs.Count() != rhs.Count()) return false;
+
+            foreach (var lm in lhs)
+            {
+                bool hasSame = false;
+                foreach (var rm in rhs)
+                {
+                    if (lm.IsSame(rm))
+                    {
+                        hasSame |= true;
+                    }
+                }
+                if (!hasSame) { return false; }
+            }
+            return true;
+        }
+
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            foreach (var m in this) 
+            {
+                foreach (var p in m)
+                {
+                    sb.Append(p.ToShortString() + ",");
+                    if (p == m.Last() && this.Last() != m) sb.Append(" | ");
+                }
+            }
+            return sb.ToString();
+        }
     }
 
     public class AgariPattern
     {
-        public void Add(MentsuList pattern)
+        public void CopyIfNotContained(MentsuList pattern)
         {
-            _patterns.Add(pattern);
+            if (IsContained(pattern))
+            {
+                return;
+            }
+            Copy(pattern);
         }
+        private void Copy(MentsuList pattern)
+        {
+            if (pattern.Count() != 5
+                && pattern.Count() != 7)
+            {
+                throw new System.Exception();
+            }
 
+            MentsuList copy = new MentsuList();
+            foreach (var m in pattern)
+            {
+                copy.Add(m);
+            }
+            
+            _patterns.Add(copy);
+        }
+        public bool IsContained(MentsuList mentsu)
+        {
+            foreach (var p in _patterns)
+            {
+                if (MentsuList.IsSameMentsu(p, mentsu))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public void Reset()
         {
             _patterns.Clear();
         }
 
+        public IEnumerable<MentsuList> Patterns
+        {
+            get { return _patterns; }
+        }
         private List<MentsuList> _patterns = new List<MentsuList>();
     }
 }

@@ -9,13 +9,21 @@ namespace Mahjong
         {
             Index = index;
             Score = score;
-            _pais = new List<DistributedPai>();
+            Reset();
+        }
+        public void Reset()
+        {
+            if (_pais == null)_pais = new List<DistributedPai>();
+            _pais.Clear();
+            IsReach = false;
+            IsIppatsu = false;
         }
         
         public int Index { get; private set; }
 
         public int Score { get; private set; }
 
+        private List<DistributedPai> _pais = default; 
         public IEnumerable<Pai> Pais
         {
             get { return _pais; }
@@ -35,9 +43,19 @@ namespace Mahjong
 
         public void Sort()
         {
-            _pais.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+            _pais.Sort((a, b) => a.CompareTo(b));
         }
 
-        private List<DistributedPai> _pais = default;
+        public void Reach()
+        {
+            IsReach = true;
+        }
+        public bool IsReach { get; private set; }
+
+        public void Ippatsu()
+        {
+            IsIppatsu = true;
+        }
+        public bool IsIppatsu { get; private set; }
     }
 }
