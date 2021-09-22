@@ -53,6 +53,12 @@ namespace Mahjong
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return this.ToShortString();
+        }
+
     }
 
     /// <summary>
@@ -229,6 +235,77 @@ namespace Mahjong
         public static int CompareTo(this Pai p, Pai o)
         {
             return p.Priority.CompareTo(o.Priority);
+        }
+    }
+
+    public static class DistributePaiExtention 
+    {
+        public static List<DistributedPai> AddShuntsu(this List<DistributedPai> pais, Group g, Id i)
+        {
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()))
+                .AddInternal(new DistributedPai(g, i+1, pais.Count()))
+                .AddInternal(new DistributedPai(g, i+2, pais.Count()));
+        }
+        public static List<DistributedPai> AddNakiShuntsu(this List<DistributedPai> pais, Group g, Id i)
+        {
+            int furo = pais.Count();
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: true))
+                .AddInternal(new DistributedPai(g, i + 1, pais.Count()).SetFuro(furo, naki: true))
+                .AddInternal(new DistributedPai(g, i + 2, pais.Count()).SetFuro(furo, naki: true));
+        }
+        public static List<DistributedPai> AddAnko(this List<DistributedPai> pais, Group g, Id i)
+        {
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()))
+                .AddInternal(new DistributedPai(g, i, pais.Count()))
+                .AddInternal(new DistributedPai(g, i, pais.Count()));
+        }
+        public static List<DistributedPai> AddMinko(this List<DistributedPai> pais, Group g, Id i, int nakiIndex)
+        {
+            int furo = pais.Count();
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 0))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 1))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 2));
+        }
+        public static List<DistributedPai> AddAnkantsu(this List<DistributedPai> pais, Group g, Id i)
+        {
+            var furo = pais.Count();
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false));
+        }
+        public static List<DistributedPai> AddMinkantsu(this List<DistributedPai> pais, Group g, Id i, int nakiIndex)
+        {
+            var furo = pais.Count();
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 0))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 1))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 2))
+                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 3));
+        }
+        public static List<DistributedPai> AddHead(this List<DistributedPai> pais, Group g, Id i)
+        {
+            return pais
+                .AddInternal(new DistributedPai(g, i, pais.Count()))
+                .AddInternal(new DistributedPai(g, i, pais.Count()));
+        }
+        private static List<DistributedPai> AddInternal(this List<DistributedPai> pais, DistributedPai p)
+        {
+            if (pais.Any((_ => _.Serial == p.Serial))) throw new System.Exception();
+            pais.Add(p);
+            return pais;
+        }
+
+        private static DistributedPai SetFuro(this DistributedPai pai, int furo, bool naki)
+        {
+            pai.Furo(furo);
+            if (naki) pai.Trash();
+            return pai;
         }
     }
 }

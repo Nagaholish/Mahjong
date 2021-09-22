@@ -17,6 +17,7 @@ namespace Mahjong
             _pais.Clear();
             IsReach = false;
             IsIppatsu = false;
+            IsDoubleReach = false;
         }
         
         public int Index { get; private set; }
@@ -57,5 +58,11 @@ namespace Mahjong
             IsIppatsu = true;
         }
         public bool IsIppatsu { get; private set; }
+
+        public void DoubleReach()
+        {
+            IsDoubleReach = true;
+        }
+        public bool IsDoubleReach { get; private set; }
     }
 }

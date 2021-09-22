@@ -219,7 +219,27 @@ namespace Mahjong
                 return naki;
             }
         }
-
+        public bool IsSangen
+        {
+            get
+            {
+                if (Count < 2) return false;
+                //  シュンツであってはいけない
+                if (IsShuntsu) return false;
+                //  字牌でなければならない
+                if (base[0].Group != Group.Jihai) return false;
+                //  同じグループになっていなければならない
+                if (!IsSameGroup) return false;
+                //  三元牌でなければならない
+                if (base[0].Id == Id.Chun
+                    || base[0].Id == Id.Haku
+                    || base[0].Id == Id.Hatsu)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
         /// <summary>
         /// ヤオチュー牌のメンツか？
         /// </summary>
@@ -267,6 +287,26 @@ namespace Mahjong
                 if (Count < 2) throw new System.Exception();    //  不正な構成
                 return f;
             }
+        }
+
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            if (IsNaki) sb.Append("(");
+            foreach (var p in this)
+            {
+                sb.Append(p.ToShortString());
+                if (p == this.Last()) 
+                {
+                    //sb.Append(" ");
+                }
+                else
+                {
+                    sb.Append(",");
+                }
+            }
+            if (IsNaki) sb.Append(")");
+            return sb.ToString();
         }
     }
 
@@ -333,11 +373,8 @@ namespace Mahjong
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             foreach (var m in this) 
             {
-                foreach (var p in m)
-                {
-                    sb.Append(p.ToShortString() + ",");
-                    if (p == m.Last() && this.Last() != m) sb.Append(" | ");
-                }
+                sb.Append(m.ToString());
+                if (this.Last() != m)   sb.Append(" | ");
             }
             return sb.ToString();
         }

@@ -140,8 +140,9 @@ namespace Mahjong
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
             //  リャンペーコーが成立するなら、イーペーコーは不成立
-            YakuRyanpekou ykRyanpeko = new YakuRyanpekou();
-            if (0 != ykRyanpeko.Calculate(mentsu, context, player, ref result))
+            var tmpResult = new YakuResult();
+            var ykRyanpeko = new RyanpekouChecker();
+            if (0 != ykRyanpeko.Calculate(mentsu, context, player, ref tmpResult))
             {
                 return 0;
             }
@@ -536,36 +537,362 @@ namespace Mahjong
             return 0;
         }
     }
-    //Sannannkou,                 //  三暗刻
-    //Sannrenkou,                 //  三連刻
-    //Chanta,                     //  チャンタ
-    //Honroutou,                  //  混老頭
-    //Shousangen,                 //  小三元
-    //DoubleReach,                //  ダブルリーチ
-    //Sansyokudoupon,             //  三色同ポン
-    //Sankantsu,                  //  三槓子
-            #endregion  //2役
-
-            // 
-            ////  2役特殊
-            //Chitoitsu,                  //  七対子
-            // 
-            ////  3役
-            //Junchan,                    //  ジュンチャン
-            //Honitsu,                    //  混一色
-            //Ryanpekou,                  //  リャンペーコー
-        public class YakuRyanpekou : IYakuChecker
+    /// <summary>
+    /// 三暗刻
+    /// </summary>
+    public class SanankoChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
-            //  TODO
+            var ankoAnkantsu = mentsu.Where(_ => _.IsAnnkantsu || _.IsAnnko);
+
+            if (ankoAnkantsu.Count() < 3)
+            {
+                return 0;
+            }
+            var l = ankoAnkantsu.ToList();
+            l.ForEach((m) => UnityEngine.Debug.Log(m));
+            return 2;
+        }
+    }
+    public static class Ext
+    {
+        private static bool Has(
+            this IEnumerable<Mentsu> mentsu,
+            System.Func<Mentsu, bool> filter,
+            System.Tuple<Group, Id> target,
+            System.Func<Group, Id, System.Tuple<Group, Id>> selector,
+            int requestNum,
+            ref int foundNum)
+        {
+            foreach (var m in mentsu)
+            {
+                if (filter(m))
+                {
+                    foundNum += 1;
+                    if (foundNum >= requestNum)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return Has(
+                            mentsu.Except(new List<Mentsu> { m }),
+                            filter,
+                            selector(target.Item1, target.Item2),
+                            selector,
+                            requestNum,
+                            ref foundNum
+                        );
+                    }
+                }
+            }
+            return false;
+        }
+        public static bool HasRenko(this IEnumerable<Mentsu> mentsu, Group g, Id i, int requestNum)
+        {
+            int foundNum = 0;
+            return Has(
+                mentsu: mentsu,
+                filter: m => (m.IsKantsu || m.IsKotsu) && m[0].Group != Group.Jihai && m[0].IsSame(g, i),
+                target: new System.Tuple<Group, Id>(g, i),
+                selector: (g, i) => new System.Tuple<Group, Id>(g, i + 1),
+                requestNum: requestNum,
+                foundNum: ref foundNum
+            );
+        }
+    }
+    /// <summary>
+    /// 三連刻
+    /// </summary>
+    public class SanrenkoChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var kotsuKantsu = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _[0].Group != Group.Jihai);
+
+            if (kotsuKantsu.Count() < 3)
+            {
+                return 0;
+            }
+            
+            foreach(var m in kotsuKantsu)
+            {
+                if (kotsuKantsu.HasRenko(m[0].Group, m[0].Id, 3))
+                {
+                    return 2;
+                }
+            }
             return 0;
         }
     }
-    // 
-    ////  6役
-    //Chinnitsu,                  //  清一色
-    // 
+    /// <summary>
+    /// チャンタ
+    /// </summary>
+    public class ChantaChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            bool naki = false;
+            bool jihai = false;
+            foreach (var m in mentsu)
+            {
+                if (!m.IsYaochuu) return 0;
+
+                if (m[0].Group == Group.Jihai) jihai = true;
+                if (m.IsNaki) naki = true;
+            }
+            if (!jihai) return 0;
+            return naki ? 1 : 2;
+        }
+    }
+    /// <summary>
+    /// 混老頭
+    /// </summary>
+    public class HonroutouChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            foreach (var m in mentsu)
+            {
+                if (!m.IsYaochuu) return 0;
+                if (m.IsShuntsu) return 0;
+            }
+            return 2;
+        }
+    }
+    /// <summary>
+    /// 小三元
+    /// </summary>
+    public class ShousangenChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var sangen = mentsu.Where(_ => _.IsSangen);
+            bool head = false;
+            bool haku = false;
+            bool chun = false;
+            bool hatsu = false;
+            foreach (var m in sangen)
+            {
+                if (m.IsHead) head = true;
+                if (m[0].Id == Id.Chun) chun = true;
+                if (m[0].Id == Id.Haku) haku = true;
+                if (m[0].Id == Id.Hatsu) hatsu = true;
+            }
+            return head && haku && chun && hatsu ? 2 : 0;
+        }
+    }
+    /// <summary>
+    /// 三色同ポン
+    /// </summary>
+    public class SansyokudouponChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var kotsuKantsu = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _[0].Group != Group.Jihai);
+
+            if (kotsuKantsu.Count() < 3)
+            {
+                return 0;
+            }
+
+            
+            foreach (var m in kotsuKantsu)
+            {
+                bool hasManz = false;
+                bool hasPinz = false;
+                bool hasSouz = false;
+                foreach (var mm in kotsuKantsu)
+                {
+                    if (m[0].Serial == mm[0].Serial)
+                    {
+                        switch (mm[0].Group)
+                        {
+                            case Group.Manz: hasManz = true; break;
+                            case Group.Pinz: hasPinz = true; break;
+                            case Group.Souz: hasSouz = true; break;
+                        }
+                    }
+                    else
+                    if (m[0].Id == mm[0].Id)
+                    {
+                        switch (mm[0].Group)
+                        {
+                            case Group.Manz: hasManz = true; break;
+                            case Group.Pinz: hasPinz = true; break;
+                            case Group.Souz: hasSouz = true; break;
+                        }
+                    }
+                }
+                if (hasManz && hasPinz && hasSouz) 
+                {
+                    return 2;
+                }
+            }
+            return 0;
+        }
+    }
+    /// <summary>
+    /// 三槓子
+    /// </summary>
+    public class SankantsuChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var kantsu = mentsu.Where(_ => _.IsKantsu);
+            if (kantsu.Count() == 3)
+            {
+                return 2;
+            }
+            return 0;
+        }
+    }
+    /// <summary>
+    /// ダブルリーチ
+    /// </summary>
+    public class DoublereachChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            if (player.IsDoubleReach && !player.IsReach)
+            {
+                throw new System.Exception();   //  DoubleReach と Reach は別々にtrueになっていることはありえない
+            }
+            return player.IsDoubleReach ? 1 : 0;
+        }
+    }
+    #endregion  //2役
+
+    #region 2役特殊
+    /// <summary>
+    /// 七対子
+    /// </summary>
+    public class ChitoitsuChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            if (mentsu.Count() != 7) return 0;
+            foreach(var m in mentsu)
+            {
+                if (!m.IsHead) return 0;
+            }
+            return 2;
+        }
+    }
+    #endregion //2役特殊
+
+
+    #region 3役
+    /// <summary>
+    /// ジュンチャン
+    /// </summary>
+    public class JunchanChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var yaochuu = mentsu.Where(_ => _.IsYaochuu);
+            
+            //  字牌があるなら不成立
+            var jihai = yaochuu.Where(_ => _[0].Group == Group.Jihai).Any();
+            if (jihai) return 0;
+
+            var naki = yaochuu.Where(_ => _.IsNaki).Any();
+
+            return naki ? 2 : 3;
+        }
+    }
+    /// <summary>
+    /// 混一色
+    /// </summary>
+    public class HonitsuChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            var jihai = mentsu.Where(_ => _.IsYaochuu && _[0].Group == Group.Jihai);
+
+            //  字牌が無いなら不成立
+            if (!jihai.Any()) return 0;
+
+            var gara = mentsu.Except(jihai);
+            if (!gara.Any()) throw new System.Exception();  //  字牌を取り除いているのに絵柄が存在しないのでバグっている
+
+            //  異なる絵柄があれば不成立
+            var group = gara.First()[0].Group;
+
+
+            foreach (var m in gara)
+            {
+                if (m[0].Group != group)
+                {
+                    return 0;
+                }
+            }
+
+            var naki = mentsu.Where(_ => _.IsNaki).Any();
+            return naki ? 2 : 3;
+        }
+    }
+    /// <summary>
+    /// リャンペーコー
+    /// </summary>
+    public class RyanpekouChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            //  鳴いてるなら不成立
+            bool naki = mentsu.Where(m => m.IsNaki).Any();
+            if (naki) return 0;
+
+            //  同じシュンツが2個x2セットあれば成立
+            int set = 0;
+            for (int i = 0; i < mentsu.Count() - 1; ++i)
+            {
+                for (int j = i + 1; j < mentsu.Count(); ++j)
+                {
+                    if (mentsu[i].IsShuntsu && mentsu[j].IsShuntsu)
+                    {
+                        if (mentsu[i].IsSame(mentsu[j]))
+                        {
+                            set += 1;
+                            if (set >= 2) return 3;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+    }
+    #endregion
+    #region 6役
+    /// <summary>
+    /// 清一色
+    /// </summary>
+    public class ChinitsuChecker : IYakuChecker
+    {
+        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        {
+            //  字牌があるなら不成立
+            var jihai = mentsu.Where(_ => _[0].Group == Group.Jihai).Any();
+            if (jihai) return 0;
+
+
+            //  異なる絵柄があれば不成立
+            var group = mentsu.First()[0].Group;
+
+            foreach (var m in mentsu)
+            {
+                if (m[0].Group != group)
+                {
+                    return 0;
+                }
+            }
+
+            var naki = mentsu.Where(_ => _.IsNaki).Any();
+            return naki ? 5 : 6;
+        }
+    }
+    #endregion
     ////  役満
     //Daisangen,                  //  大三元
     //Suannkou,                   //  四暗刻

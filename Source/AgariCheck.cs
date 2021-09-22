@@ -17,9 +17,11 @@ namespace Mahjong
             {
                 return true;
             }
+
+            //  七対子が成立しても、二盃口の可能性があるため、通常の成立もチェックする
             if (IsOKOfChitoitsu(pais, ref pattern))
             {
-                return true;
+                
             }
             if (IsOKOfOtherwise(pais, ref pattern))
             {
@@ -35,8 +37,58 @@ namespace Mahjong
         }
         public bool IsOKOfChitoitsu(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
-            //  TODO
-            return false;
+            //  副露しているものがあれば不成立
+            var paisWithoutFuro = pais.Where(p => p.IsFuro).Any();
+            if (paisWithoutFuro) return false;
+
+            //  同じ牌が４つある場合は不成立
+            foreach (var p in pais)
+            {
+                int n = 0;
+                foreach (var pp in pais)
+                {
+                    if (p.IsSame(pp.Group, pp.Id))
+                    {
+                        n += 1;
+                    }
+                }
+                if (n == 4)
+                {
+                    return false;
+                }
+            }
+
+            //  アタマが7個あるか調べる
+            MentsuList result = new MentsuList();
+            foreach (var p in pais)
+            {
+                result.Clear();
+
+                var e = pais;
+                bool loop = true;
+                do
+                {
+                    Mentsu mentsuHead = null;
+                    
+                    e = RemoveHead(e, e.ElementAt(0).Group, e.ElementAt(0).Id, out mentsuHead);
+                    //  アタマが見つからないなら、不成立
+                    if (e == null || mentsuHead == null)
+                    {
+                        return false;
+                    }
+                    //  アタマがあった場合
+                    if (e != null && mentsuHead != null)
+                    {
+                        result.Add(mentsuHead);
+                        if (e.Count() == 0 && result.Count() == 7)
+                        {
+                            agariPattern.CopyIfNotContained(result);
+                            loop = false;
+                        }
+                    }
+                } while (loop);
+            }
+            return true;
         }
         public bool IsOKOfOtherwise(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
@@ -80,7 +132,7 @@ namespace Mahjong
                                 //  アタマ登録
                                 mentsuList.Add(mentsuHead);
                                 //  副露があれば登録
-                                mentsuList.Concat(furoOnly);
+                                mentsuList.AddRange(furoOnly);
 
                                 //  アガリパターン登録
                                 agariPattern.CopyIfNotContained(mentsuList);
@@ -102,7 +154,7 @@ namespace Mahjong
                                 //  アタマ登録
                                 mentsuList.Add(mentsuHead);
                                 //  副露があれば登録
-                                mentsuList.Concat(furoOnly);
+                                mentsuList.AddRange(furoOnly);
 
                                 //  アガリパターン登録
                                 agariPattern.CopyIfNotContained(mentsuList);
@@ -124,7 +176,7 @@ namespace Mahjong
                                 //  アタマ登録
                                 mentsuList.Add(mentsuHead);
                                 //  副露があれば登録
-                                mentsuList.Concat(furoOnly);
+                                mentsuList.AddRange(furoOnly);
 
                                 //  アガリパターン登録
                                 agariPattern.CopyIfNotContained(mentsuList);
@@ -146,7 +198,7 @@ namespace Mahjong
                                 //  アタマ登録
                                 mentsuList.Add(mentsuHead);
                                 //  副露があれば登録
-                                mentsuList.Concat(furoOnly);
+                                mentsuList.AddRange(furoOnly);
 
                                 //  アガリパターン登録
                                 agariPattern.CopyIfNotContained(mentsuList);
@@ -283,44 +335,11 @@ namespace Mahjong
 
             return e3;
         }
-        private IEnumerable<DistributedPai> RemoveAllShuntsuFromTop(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
+        private IEnumerable<DistributedPai> RemoveAllShuntsuInternal(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
-            IEnumerable<DistributedPai> e = pais;
-            Group g = Group.Invalid;
-            Id i = Id.Invalid;
+            var e = pais;
             foreach (var p in e)
             {
-                if (p.IsSame(g, i))
-                {
-                    continue;
-                }
-
-                Mentsu mentsu;
-                var ee = RemoveShuntsu(e, p.Group, p.Id, out mentsu);
-                if (ee != null)
-                {
-                    e = ee;
-
-                    UnityEngine.Debug.Assert(mentsu != null);
-                    mentsuList.Add(mentsu);
-                }
-                g = p.Group;
-                i = p.Id;
-            }
-            return e;
-        }
-        private IEnumerable<DistributedPai> RemoveAllShuntsuFromTail(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
-        {
-            IEnumerable<DistributedPai> e = pais.Reverse();
-            Group g = Group.Invalid;
-            Id i = Id.Invalid;
-            foreach (var p in e)
-            {
-                if (p.IsSame(g, i))
-                {
-                    continue;
-                }
-
                 Mentsu mentsu;
                 var ee = RemoveShuntsu(e, p.Group, p.Id, out mentsu);
                 if (ee != null)
@@ -331,10 +350,17 @@ namespace Mahjong
                     mentsu.Sort((a, b) => a.CompareTo(b));
                     mentsuList.Add(mentsu);
                 }
-                g = p.Group;
-                i = p.Id;
             }
             return e;
+        }
+        private IEnumerable<DistributedPai> RemoveAllShuntsuFromTop(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
+        {
+            return RemoveAllShuntsuInternal(pais, ref mentsuList);
+        }
+        private IEnumerable<DistributedPai> RemoveAllShuntsuFromTail(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
+        {
+            IEnumerable<DistributedPai> e = pais.Reverse();
+            return RemoveAllShuntsuInternal(pais, ref mentsuList);
         }
         private void RemoveFuroMentsu(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
