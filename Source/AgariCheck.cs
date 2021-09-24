@@ -32,8 +32,74 @@ namespace Mahjong
 
         public bool IsOKOfKokushimusou(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
-            //  TODO
-            return false;
+            //  副露しているものがあれば不成立
+            var paisWithoutFuro = pais.Where(p => p.IsFuro).Any();
+            if (paisWithoutFuro) return false;
+
+            //  ヤオチュウ13種があるか調べる
+            var dic = new Dictionary<(Group, Id), int>
+            {
+                { (Group.Manz, Id.N1), 0 },
+                { (Group.Manz, Id.N9), 0 },
+                { (Group.Pinz, Id.N1), 0 },
+                { (Group.Pinz, Id.N9), 0 },
+                { (Group.Souz, Id.N1), 0 },
+                { (Group.Souz, Id.N9), 0 },
+
+                { (Group.Jihai, Id.Ton), 0 },
+                { (Group.Jihai, Id.Nan), 0 },
+                { (Group.Jihai, Id.Sha), 0 },
+                { (Group.Jihai, Id.Pei), 0 },
+
+                { (Group.Jihai, Id.Chun), 0 },
+                { (Group.Jihai, Id.Haku), 0 },
+                { (Group.Jihai, Id.Hatsu), 0 },
+            };
+            bool head = false;
+            var keys = dic.Keys.ToList();
+            foreach(var k in keys)
+            {
+                var count = pais.Where(_ => _.IsSame(k.Item1, k.Item2)).Count();
+                if (count == 0) return false;
+
+                dic[k] += count;
+                if (dic[k] > 1)
+                {
+                    head = true;
+                }
+            }
+            //  アタマが無いなら不成立
+            if (!head) return false;
+
+            //  メンツを構成する
+            var e = pais;
+            MentsuList result = new MentsuList();
+            Mentsu mentsu = null;
+            foreach(var key in dic.Keys)
+            {
+                if (2 == dic[key])
+                {
+                    e = RemoveHead(e, key.Item1, key.Item2, out mentsu);
+                    if (e == null || mentsu == null)
+                    {
+                        return false;
+                    }
+                    result.Add(mentsu);
+                }
+                else if (1 == dic[key])
+                {
+                    e = RemovePai(e, key.Item1, key.Item2, out mentsu);
+                    if (e == null || mentsu == null)
+                    {
+                        return false;
+                    }
+                    result.Add(mentsu);
+                }
+            }
+            if (result.Count() != 13) throw new System.Exception(); //  13種揃っていないのはおかしい
+
+            agariPattern.CopyIfNotContained(result);
+            return true;
         }
         public bool IsOKOfChitoitsu(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
@@ -76,12 +142,14 @@ namespace Mahjong
                     {
                         return false;
                     }
-                    //  アタマがあった場合
+                    //  アタマがあった場合はeが無くなるまで次のアタマを探し、
+                    //  Mentsuが7個になったら七対子成立とする
                     if (e != null && mentsuHead != null)
                     {
                         result.Add(mentsuHead);
                         if (e.Count() == 0 && result.Count() == 7)
                         {
+                            //  成立しているので登録する
                             agariPattern.CopyIfNotContained(result);
                             loop = false;
                         }
@@ -104,7 +172,7 @@ namespace Mahjong
             //  １つずつ調べる
             {
                 var mentsuList = new MentsuList();
-                var mentsuHead = new Mentsu();
+                Mentsu mentsuHead = null;
                 foreach (var pai in paisWithoutFuro)
                 {
                     //  アタマを決める
@@ -226,24 +294,20 @@ namespace Mahjong
                 return null;
             }
             return pais.Except(new List<DistributedPai>() { remove });
-            /*
-            var removed = pais.Where(p =>
-            {
-                if (!found && p.IsSame(g, i))
-                {
-                    found = true;
-                    return false;
-                }
-                return true;
-            });
-            var after = removed.Count();
-            if (prev != after)
-            {
-                var l = removed.ToList();
-                return l;
-            }
-            return null;
-            */
+        }
+        private IEnumerable<DistributedPai> RemovePai(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
+        {
+            mentsu = null;
+
+            var e1 = RemovePai(pais, g, i);
+            if (e1 == null) return null;
+
+            var removed = pais.Except(e1);
+
+            mentsu = new Mentsu();
+            mentsu.AddPai(removed.ElementAt(0), null, null, null);
+
+            return e1;
         }
         private IEnumerable<DistributedPai> RemoveHead(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
         {

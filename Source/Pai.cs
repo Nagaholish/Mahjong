@@ -111,7 +111,11 @@ namespace Mahjong
             get;
             private set;
         }
-        public void Furo(int serial) { SerialFuro = serial; }
+        public void Furo(int serial) 
+        {
+            if (serial == 0) throw new System.Exception();
+            SerialFuro = serial;
+        }
 
         private enum StatusAgari
         {
@@ -249,9 +253,9 @@ namespace Mahjong
         }
         public static List<DistributedPai> AddNakiShuntsu(this List<DistributedPai> pais, Group g, Id i)
         {
-            int furo = pais.Count();
+            int furo = pais.Count() + 1;
             return pais
-                .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: true))
+                .AddInternal(new DistributedPai(g, i + 0, pais.Count()).SetFuro(furo, naki: true))
                 .AddInternal(new DistributedPai(g, i + 1, pais.Count()).SetFuro(furo, naki: true))
                 .AddInternal(new DistributedPai(g, i + 2, pais.Count()).SetFuro(furo, naki: true));
         }
@@ -264,7 +268,7 @@ namespace Mahjong
         }
         public static List<DistributedPai> AddMinko(this List<DistributedPai> pais, Group g, Id i, int nakiIndex)
         {
-            int furo = pais.Count();
+            int furo = pais.Count() + 1;
             return pais
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 0))
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 1))
@@ -272,7 +276,7 @@ namespace Mahjong
         }
         public static List<DistributedPai> AddAnkantsu(this List<DistributedPai> pais, Group g, Id i)
         {
-            var furo = pais.Count();
+            int furo = pais.Count() + 1;
             return pais
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false))
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: false))
@@ -281,7 +285,7 @@ namespace Mahjong
         }
         public static List<DistributedPai> AddMinkantsu(this List<DistributedPai> pais, Group g, Id i, int nakiIndex)
         {
-            var furo = pais.Count();
+            int furo = pais.Count() + 1;
             return pais
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 0))
                 .AddInternal(new DistributedPai(g, i, pais.Count()).SetFuro(furo, naki: nakiIndex == 1))
@@ -292,6 +296,11 @@ namespace Mahjong
         {
             return pais
                 .AddInternal(new DistributedPai(g, i, pais.Count()))
+                .AddInternal(new DistributedPai(g, i, pais.Count()));
+        }
+        public static List<DistributedPai> AddSingle(this List<DistributedPai> pais, Group g, Id i)
+        {
+            return pais
                 .AddInternal(new DistributedPai(g, i, pais.Count()));
         }
         private static List<DistributedPai> AddInternal(this List<DistributedPai> pais, DistributedPai p)

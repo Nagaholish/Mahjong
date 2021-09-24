@@ -46,13 +46,13 @@ namespace Mahjong
 
         /// <summary>
         /// すべて同じ柄か
-        /// ただし2枚以上ある時にのみ、呼出可能とする
+        /// ただし1枚時のみは、falseとする
         /// </summary>
         public bool IsSameGroup
         {
             get
             {
-                if (Count < 2) throw new System.Exception("count must be 2 or over.");
+                if (Count < 1) return false;
 
                 var g = base[0].Group;
                 foreach (var e in this)
@@ -62,6 +62,11 @@ namespace Mahjong
                 return true;
             }
         }
+        /// <summary>
+        /// 同じメンツ構成か
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         public bool IsSame(Mentsu m)
         {
             if (m.Count() != this.Count())
@@ -219,6 +224,10 @@ namespace Mahjong
                 return naki;
             }
         }
+        /// <summary>
+        /// 三元牌のメンツか？
+        /// アタマ、コーツ、カンツの場合のみtrueとなりえる
+        /// </summary>
         public bool IsSangen
         {
             get
@@ -234,6 +243,32 @@ namespace Mahjong
                 if (base[0].Id == Id.Chun
                     || base[0].Id == Id.Haku
                     || base[0].Id == Id.Hatsu)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+        /// <summary>
+        /// 風牌のメンツか？
+        /// アタマ、コーツ、カンツの場合のみtrueとなりえる
+        /// </summary>
+        public bool IsKaze
+        {
+            get
+            {
+                if (Count < 2) return false;
+                //  シュンツであってはいけない
+                if (IsShuntsu) return false;
+                //  字牌でなければならない
+                if (base[0].Group != Group.Jihai) return false;
+                //  同じグループになっていなければならない
+                if (!IsSameGroup) return false;
+                //  三元牌でなければならない
+                if (base[0].Id == Id.Ton
+                    || base[0].Id == Id.Nan
+                    || base[0].Id == Id.Sha
+                    || base[0].Id == Id.Pei)
                 {
                     return true;
                 }
@@ -270,7 +305,38 @@ namespace Mahjong
                 return false;
             }
         }
-
+        /// <summary>
+        /// ソウズメンツもしくは撥か？
+        /// 緑一色用
+        /// </summary>
+        public bool IsGreen
+        {
+            get
+            {
+                if (!IsSameGroup) return false;
+                if (IsShuntsu)
+                {
+                    if (base[0].Group != Group.Souz) return false;
+                    if (this.Any(_ => _.Id == Id.N1 || _.Id == Id.N5 || _.Id == Id.N7 || _.Id == Id.N9)) return false;
+                }
+                else if (IsHead || IsKotsu || IsKantsu)
+                {
+                    if (base[0].Group == Group.Jihai)
+                    {
+                        if (base[0].Id != Id.Hatsu) return false;
+                    }
+                    else if (base[0].Group != Group.Souz)
+                    {
+                        return false;
+                    }
+                    else if (base[0].Group == Group.Souz)
+                    {
+                        if (this.Any(_ => _.Id == Id.N1 || _.Id == Id.N5 || _.Id == Id.N7 || _.Id == Id.N9)) return false;
+                    }
+                }
+                return true;
+            }
+        }
         public bool IsAgariMentsu
         {
             get
@@ -284,7 +350,6 @@ namespace Mahjong
                         break;
                     }
                 }
-                if (Count < 2) throw new System.Exception();    //  不正な構成
                 return f;
             }
         }
@@ -392,8 +457,9 @@ namespace Mahjong
         }
         private void Copy(MentsuList pattern)
         {
-            if (pattern.Count() != 5
-                && pattern.Count() != 7)
+            if (pattern.Count() != 5        //  通常メンツ
+                && pattern.Count() != 7     //  七対子
+                && pattern.Count() != 13)   //  国士無双
             {
                 throw new System.Exception();
             }
