@@ -4,13 +4,25 @@ using System.Linq;
 
 namespace Mahjong
 {
-    public struct YakuResult
-    {
-        public Yaku Yaku;
-    }
+    /// <summary>
+    /// 役のチェックインターフェイス
+    /// </summary>
     public interface IYakuChecker
     {
-        int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result);
+        /// <summary>
+        /// 対応するYakuを返す
+        /// </summary>
+        /// <returns></returns>
+        Yaku GetYaku();
+
+        /// <summary>
+        /// 計算する
+        /// </summary>
+        /// <param name="mentsu">アガリの人のメンツ構成</param>
+        /// <param name="context">場情報</param>
+        /// <param name="player">アガリプレイヤー</param>
+        /// <returns></returns>
+        int Calculate(MentsuList mentsu, Context context, Player player);
     }
 
     /// <summary>
@@ -51,11 +63,14 @@ namespace Mahjong
             return ifundefined;
         }
     }
+    /// <summary>
+    /// 役のチェックの窓口
+    /// </summary>
     public class YakuCheck
     {
         private IEnumerable<IYakuChecker> _checkers = null;
 
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  IYakuChecker実装クラスを抽出する
             if (_checkers == null)
@@ -71,10 +86,11 @@ namespace Mahjong
                 _checkers = checkersType.Select(type => System.Activator.CreateInstance(type) as IYakuChecker);
             }
 
+            int han = 0;
             var agari = new List<System.Tuple<IYakuChecker, int>>();
             foreach (var y in _checkers)
             {
-                int r = y.Calculate(mentsu, context, player, ref result);
+                int r = y.Calculate(mentsu, context, player);
                 if (0 != r)
                 {
                     agari.Add(new System.Tuple<IYakuChecker, int>(y, r));
@@ -92,7 +108,9 @@ namespace Mahjong
     /// </summary>
     public class TannyaoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Tannyao; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             foreach (var m in mentsu)
             {
@@ -126,7 +144,9 @@ namespace Mahjong
     /// </summary>
     public class PinhuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Pinhu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  コーツ、カンツをもっているなら不成立
             if (mentsu.HasKotsuOrKantsu)
@@ -178,12 +198,13 @@ namespace Mahjong
     /// </summary>
     public class IipeikoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Iipekou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  リャンペーコーが成立するなら、イーペーコーは不成立
-            var tmpResult = new YakuResult();
             var ykRyanpeko = new RyanpekouChecker();
-            if (0 != ykRyanpeko.Calculate(mentsu, context, player, ref tmpResult))
+            if (0 != ykRyanpeko.Calculate(mentsu, context, player))
             {
                 return 0;
             }
@@ -214,7 +235,9 @@ namespace Mahjong
     /// </summary>
     public class ReachChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Reach; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             return player.IsReach ? 1 : 0;
         }
@@ -224,7 +247,9 @@ namespace Mahjong
     /// </summary>
     public class IppatsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Ippatsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             return player.IsIppatsu ? 1 : 0;
         }
@@ -234,7 +259,9 @@ namespace Mahjong
     /// </summary>
     public class TsumoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Menzentsumo; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var naki = mentsu.Where(_ => _.IsNaki).Count();
             if (naki > 0) return 0;
@@ -256,7 +283,9 @@ namespace Mahjong
     /// </summary>
     public class ChankanhouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chankanhou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  TODO
             return 0;
@@ -267,7 +296,9 @@ namespace Mahjong
     /// </summary>
     public class RinsyankaihouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Rinsyan; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  TODO
             return 0;
@@ -278,7 +309,9 @@ namespace Mahjong
     /// </summary>
     public class HaiteiTsumoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Haiteitsumo; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (!context.GetPaiManager().IsEmpty())
             {
@@ -298,7 +331,9 @@ namespace Mahjong
     /// </summary>
     public class HaiteiRonChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Haiteiron; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (!context.GetPaiManager().IsEmpty())
             {
@@ -319,7 +354,9 @@ namespace Mahjong
     /// </summary>
     public class HakuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Haku; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (mentsu.FilterKotsuKantsuWithId(Id.Haku).Any())
             {
@@ -333,7 +370,9 @@ namespace Mahjong
     /// </summary>
     public class HatsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Hatsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (mentsu.FilterKotsuKantsuWithId(Id.Hatsu).Any())
             {
@@ -347,7 +386,9 @@ namespace Mahjong
     /// </summary>
     public class ChunChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chun; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (mentsu.FilterKotsuKantsuWithId(Id.Chun).Any())
             {
@@ -361,7 +402,9 @@ namespace Mahjong
     /// </summary>
     public class TonChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Ton; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Ton;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -379,7 +422,9 @@ namespace Mahjong
     /// </summary>
     public class NanChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Nan; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Nan;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -397,7 +442,9 @@ namespace Mahjong
     /// </summary>
     public class ShaChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sha; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Sha;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -415,7 +462,9 @@ namespace Mahjong
     /// </summary>
     public class PeiChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Pei; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Pei;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -433,7 +482,9 @@ namespace Mahjong
     /// </summary>
     public class TonFieldChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.TonField; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Ton;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -451,7 +502,9 @@ namespace Mahjong
     /// </summary>
     public class NanFieldChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.NanField; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Nan;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -469,7 +522,9 @@ namespace Mahjong
     /// </summary>
     public class ShaFieldChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.ShaField; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Sha;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -487,7 +542,9 @@ namespace Mahjong
     /// </summary>
     public class PeiFieldChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.PeiField; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var id = Id.Pei;
             if (mentsu.FilterKotsuKantsuWithId(id).Any())
@@ -507,7 +564,9 @@ namespace Mahjong
     /// </summary>
     public class SansyokuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sansyoku; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var shunts = mentsu.Where(_ => _.IsShuntsu);
             var naki = mentsu.Where(_ => _.IsNaki).Any();
@@ -546,7 +605,9 @@ namespace Mahjong
     /// </summary>
     public class IkkitsukanChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Ikkitsukan; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var shunts = mentsu.Where(_ => _.IsShuntsu);
             var naki = mentsu.Where(_ => _.IsNaki).Any();
@@ -576,7 +637,9 @@ namespace Mahjong
     /// </summary>
     public class ToitoiChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Toitoi; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kotsuKantsu = mentsu.FilterKotsuKantsu();
 
@@ -592,7 +655,9 @@ namespace Mahjong
     /// </summary>
     public class SanankoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sannannkou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var ankoAnkantsu = mentsu.Where(_ => _.IsAnnkantsu || _.IsAnnko);
 
@@ -655,7 +720,9 @@ namespace Mahjong
     /// </summary>
     public class SanrenkoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sannrenkou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kotsuKantsu = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _[0].Group != Group.Jihai);
 
@@ -679,7 +746,9 @@ namespace Mahjong
     /// </summary>
     public class ChantaChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chanta; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             bool naki = false;
             bool jihai = false;
@@ -699,7 +768,9 @@ namespace Mahjong
     /// </summary>
     public class HonroutouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Honroutou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             foreach (var m in mentsu)
             {
@@ -714,7 +785,9 @@ namespace Mahjong
     /// </summary>
     public class ShousangenChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Shousangen; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var sangen = mentsu.Where(_ => _.IsSangen);
             bool head = false;
@@ -736,7 +809,9 @@ namespace Mahjong
     /// </summary>
     public class SansyokudouponChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sansyokudoupon; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kotsuKantsu = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _[0].Group != Group.Jihai);
 
@@ -786,7 +861,9 @@ namespace Mahjong
     /// </summary>
     public class SankantsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sankantsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kantsu = mentsu.Where(_ => _.IsKantsu);
             if (kantsu.Count() == 3)
@@ -801,7 +878,9 @@ namespace Mahjong
     /// </summary>
     public class DoublereachChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.DoubleReach; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (player.IsDoubleReach && !player.IsReach)
             {
@@ -817,7 +896,9 @@ namespace Mahjong
     /// </summary>
     public class ChitoitsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chinnitsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             if (mentsu.Count() != 7) return 0;
             foreach (var m in mentsu)
@@ -834,7 +915,9 @@ namespace Mahjong
     /// </summary>
     public class JunchanChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Junchan; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  ヤオチューでないものがあれば不成立
             var notYaochuu = mentsu.Where(_ => !_.IsYaochuu);
@@ -856,7 +939,9 @@ namespace Mahjong
     /// </summary>
     public class HonitsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Honitsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var jihai = mentsu.Where(_ => _.IsYaochuu && _[0].Group == Group.Jihai);
 
@@ -888,7 +973,9 @@ namespace Mahjong
     /// </summary>
     public class RyanpekouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Ryanpekou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  鳴いてるなら不成立
             bool naki = mentsu.Where(m => m.IsNaki).Any();
@@ -920,7 +1007,9 @@ namespace Mahjong
     /// </summary>
     public class ChinitsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chinnitsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  字牌があるなら不成立
             var jihai = mentsu.Where(_ => _[0].Group == Group.Jihai).Any();
@@ -950,7 +1039,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisangenChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Daisangen; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var sangen = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _.IsSangen).ToList();
 
@@ -976,7 +1067,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class SuankoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Suannkou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  メンゼンでなければ不成立
             var naki = mentsu.Where(_ => _.IsNaki).Any();
@@ -998,7 +1091,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class SurenkoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Surenkou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kotsuKantsu = mentsu.Where(_ => (_.IsKotsu || _.IsKantsu) && _[0].Group != Group.Jihai);
 
@@ -1023,7 +1118,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class SukantsuChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Sukantsu; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kantsu = mentsu.Where(_ => _.IsKantsu);
             if (kantsu.Count() == 4)
@@ -1039,7 +1136,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class TsuisoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Tsuiso; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var numbers = mentsu.Where(_ => _.IsSameGroup && _[0].Group != Group.Jihai);
             if (numbers.Any()) return 0;
@@ -1053,7 +1152,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class ShousushiChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Shousushi; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             var kaze = mentsu.Where(_ => _.IsKaze);
             if (kaze.Count() != 4) return 0;
@@ -1086,7 +1187,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisushiChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result) 
+        public Yaku GetYaku() { return Yaku.Daisushi; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player) 
         {
             var kaze = mentsu.Where(_ => _.IsKaze);
             if (kaze.Count() != 4) return 0;
@@ -1119,7 +1222,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class RyuisoChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Ryuisou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  緑でないものがあれば不成立
             var notGreen = mentsu.Where(_ => !_.IsGreen);
@@ -1134,7 +1239,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class ChinroutouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chinroutou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             foreach (var m in mentsu)
             {
@@ -1151,7 +1258,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class ChuurenpoutouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chuurenpoutou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  字牌または鳴きがあるなら不成立
             var jihaiOrNaki = mentsu.Where(_ => (_.IsNaki || _[0].Group == Group.Jihai));
@@ -1198,7 +1307,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class KokushimusouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Kokushimusou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  アタマ以外の通常メンツがあるなら不成立
             var normalmentsu = mentsu.Where(_ => _.IsNaki || _.IsShuntsu || _.IsKotsu || _.IsKantsu);
@@ -1254,7 +1365,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.SpYakuman)]
     public class TenhouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Tenhou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  1巡目以外不成立
             if (context.TurnCount != 0) 
@@ -1278,7 +1391,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.SpYakuman)]
     public class ChihouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Chihou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  1巡目以外不成立
             if (context.TurnCount != 0)
@@ -1302,7 +1417,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.SpYakuman)]
     public class RenhouChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Renhou; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  1巡目以外不成立
             if (context.TurnCount != 0)
@@ -1326,7 +1443,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisharinChecker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Daisharin; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  ピンズ以外は不成立
             if (mentsu.Any(_ => _[0].Group != Group.Pinz))
@@ -1372,7 +1491,9 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.SpYakuman)]
     public class Renchan8Checker : IYakuChecker
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
+        public Yaku GetYaku() { return Yaku.Renchan8; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             return 0;
         }
