@@ -183,6 +183,13 @@ namespace Mahjong
 
         MaxYaku,
     }
+    public static class YakuExtention
+    {
+        public static bool IsYakuman(this Yaku yaku)
+        {
+            return yaku >= Yaku.Daisangen;  //  Yakuの定義順に依存するので注意
+        }
+    }
 }
 
     
