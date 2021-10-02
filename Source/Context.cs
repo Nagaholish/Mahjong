@@ -58,6 +58,11 @@ namespace Mahjong
         public int CurrentTurnPlayer { get; private set; }
         public int CurrentOyaPlayer { get; private set; }
         public int[] WinnerPlayers { get; private set; }
+        /// <summary>
+        /// 指定プレイヤーの風牌を取得する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public Id PlayerToId(int index)
         {
             var oya = CurrentOyaPlayer;
