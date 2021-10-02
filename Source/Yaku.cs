@@ -254,17 +254,7 @@ namespace Mahjong
             return 0;
         }
     }
-    static class KotsuKantsuChecker
-    {
-        public static IEnumerable<Mentsu> FilterKotsuKantsu(this MentsuList mentsu)
-        {
-            return mentsu.Where(_ => _.IsKotsu || _.IsKantsu);
-        }
-        public static IEnumerable<Mentsu> FilterKotsuKantsuWithId(this MentsuList mentsu, Id id)
-        {
-            return mentsu.FilterKotsuKantsu().Where(_ => _[0].Id == id);
-        }
-    }
+    
     /// <summary>
     /// 白
     /// </summary>
@@ -529,7 +519,7 @@ namespace Mahjong
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
-            var kotsuKantsu = mentsu.Where(_ => _.IsKantsu || _.IsKotsu);
+            var kotsuKantsu = mentsu.FilterKotsuKantsu();
 
             if (kotsuKantsu.Count() == 4)
             {

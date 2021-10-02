@@ -4,8 +4,15 @@ using System.Linq;
 
 namespace Mahjong
 {
+    /// <summary>
+    /// ひとメンツの構成
+    /// </summary>
     public class Mentsu : List<DistributedPai>
     {
+        /// <summary>
+        /// コンストラクタ
+        /// 最大４つまでしかAddできない
+        /// </summary>
         public Mentsu()
             : base(capacity: 4)
         {
@@ -204,7 +211,30 @@ namespace Mahjong
                 return true;
             }
         }
-
+        /// <summary>
+        /// 副露したメンツか？
+        /// </summary>
+        public bool IsFuro
+        {
+            get 
+            {
+                //  3つ以上でなければならない
+                var c = Count;
+                if (c < 3) return false;
+                var tempc = 0;
+                foreach (var p in this)
+                {
+                    if (p.IsFuro) tempc += 1;
+                }
+                if (tempc == 0)
+                {
+                    //  副露していない
+                    return false;
+                }
+                if (c != tempc) throw new System.Exception();
+                return true;
+            }
+        }
         /// <summary>
         /// 鳴いたメンツか？
         /// </summary>
@@ -337,6 +367,10 @@ namespace Mahjong
                 return true;
             }
         }
+        /// <summary>
+        /// 上がり牌をもつメンツか？
+        /// ロン上がり、ツモアガリは問わない
+        /// </summary>
         public bool IsAgariMentsu
         {
             get
@@ -353,37 +387,46 @@ namespace Mahjong
                 return f;
             }
         }
-
+        /// <summary>
+        /// XX, XX, XXのような構成で文字列出力
+        /// 副露しているものは(XX, XX, XX)と出力する
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            if (IsNaki) sb.Append("(");
+            var furo = IsFuro;
+            if (furo) sb.Append("(");
             foreach (var p in this)
             {
                 sb.Append(p.ToShortString());
-                if (p == this.Last()) 
-                {
-                    //sb.Append(" ");
-                }
-                else
+                if (p != this.Last()) 
                 {
                     sb.Append(",");
                 }
             }
-            if (IsNaki) sb.Append(")");
+            if (furo) sb.Append(")");
             return sb.ToString();
         }
     }
 
-
+    /// <summary>
+    /// Mentsuクラスを保持するリスト
+    /// </summary>
     public class MentsuList : List<Mentsu>
     {
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public MentsuList()
-            //: base(capacity: 4 + 1) //  ４メンツ＋１アタマ
-            : base(capacity: 7 * 2) //  七対子対策
+            : base(capacity: 13) //  国士無双用
         {
 
         }
+        /// <summary>
+        /// 上がりメンツを取得
+        /// 無いのに呼び出した場合は、エラーとする
+        /// </summary>
         public Mentsu AgariMentsu
         {
             get
@@ -398,22 +441,41 @@ namespace Mahjong
                 throw new System.Exception();
             }
         }
-
+        /// <summary>
+        /// コーツ、カンツを持っているか？
+        /// </summary>
         public bool HasKotsuOrKantsu
         {
             get
             {
-                foreach(var m in this)
-                {
-                    if (m.IsKantsu || m.IsKotsu)
-                    {
-                        return true;
-                    }
-                }
-                return false;
+                return this.Where(m => m.IsKantsu || m.IsKotsu).Any();
             }
         }
+        /// <summary>
+        /// コーツ、カンツでフィルター
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<Mentsu> FilterKotsuKantsu()
+        {
+            return this.Where(_ => _.IsKotsu || _.IsKantsu);
+        }
+        /// <summary>
+        /// 指定のIdでコーツ、カンツをフィルター
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<Mentsu> FilterKotsuKantsuWithId(Id id)
+        {
+            return this.FilterKotsuKantsu().Where(_ => _[0].Id == id);
+        }
 
+        /// <summary>
+        /// メンツリスト同士を比較する
+        /// 同じ構成ならtrue
+        /// Mentsuの並び順、Paiの並び順は無関係とする
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        /// <returns></returns>
         public static bool IsSameMentsu(MentsuList lhs, MentsuList rhs)
         {
             if (lhs.Count() != rhs.Count()) return false;
@@ -432,7 +494,10 @@ namespace Mahjong
             }
             return true;
         }
-
+        /// <summary>
+        /// XX, XX, XX | YY, YY, YY | のような文字列になる
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -445,8 +510,16 @@ namespace Mahjong
         }
     }
 
+    /// <summary>
+    /// アガリパターン保持
+    /// </summary>
     public class AgariPattern
     {
+        /// <summary>
+        /// MentsuListをコピーして保持する
+        /// アガリ構成数でないとエラーになる
+        /// </summary>
+        /// <param name="pattern">コピー元</param>
         public void CopyIfNotContained(MentsuList pattern)
         {
             if (IsContained(pattern))
@@ -455,6 +528,11 @@ namespace Mahjong
             }
             Copy(pattern);
         }
+        /// <summary>
+        /// コピーする
+        /// 重複しているかはチェックしないので、IsContainedを必要に応じて呼び出すこと
+        /// </summary>
+        /// <param name="pattern"></param>
         private void Copy(MentsuList pattern)
         {
             if (pattern.Count() != 5        //  通常メンツ
@@ -472,6 +550,11 @@ namespace Mahjong
             
             _patterns.Add(copy);
         }
+        /// <summary>
+        /// そのメンツ構成をすでに登録しているか？
+        /// </summary>
+        /// <param name="mentsu"></param>
+        /// <returns></returns>
         public bool IsContained(MentsuList mentsu)
         {
             foreach (var p in _patterns)
@@ -483,11 +566,16 @@ namespace Mahjong
             }
             return false;
         }
+        /// <summary>
+        /// アガリパターンをクリアする
+        /// </summary>
         public void Reset()
         {
             _patterns.Clear();
         }
-
+        /// <summary>
+        /// アガリパターン取得
+        /// </summary>
         public IEnumerable<MentsuList> Patterns
         {
             get { return _patterns; }
