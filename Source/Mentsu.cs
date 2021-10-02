@@ -469,6 +469,68 @@ namespace Mahjong
         }
 
         /// <summary>
+        /// 指定したメンツを再帰的に検査して指定個数持っているならtrueを返す
+        /// </summary>
+        /// <param name="mentsu">検査するMentsuListなどのIEnumerable<Mentsu></param>
+        /// <param name="filter">検査対象にするMentsu条件</param>
+        /// <param name="target">検査したい牌種</param>
+        /// <param name="selector">検査結果を見つけた後のtargetの変更処理</param>
+        /// <param name="requestNum">検査したい数</param>
+        /// <param name="foundNum">見つかった数</param>
+        /// <returns></returns>
+        public static bool Has(
+            IEnumerable<Mentsu> mentsu,
+            System.Tuple<Group, Id> target,
+            System.Func<Mentsu, Group, Id, bool> filter,            
+            System.Func<Group, Id, System.Tuple<Group, Id>> selector,
+            int requestNum,
+            ref int foundNum)
+        {
+            foreach (var m in mentsu)
+            {
+                if (filter(m, target.Item1, target.Item2))
+                {
+                    foundNum += 1;
+                    if (foundNum >= requestNum)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return Has(
+                            mentsu.Except(new List<Mentsu> { m }),
+                            selector(target.Item1, target.Item2),
+                            filter,                            
+                            selector,
+                            requestNum,
+                            ref foundNum
+                        );
+                    }
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// 連刻を持っているか？
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <param name="renkoCount"></param>
+        /// <returns></returns>
+        public bool HasRenko(Group g, Id i, int renkoCount)
+        {
+            int foundNum = 0;
+            return Has(
+                mentsu: this,
+                target: new System.Tuple<Group, Id>(g, i),
+                filter: (m, gg, ii) => (m.IsKantsu || m.IsKotsu) && m[0].Group != Group.Jihai && m[0].IsSame(gg, ii),
+                selector: (g, i) => new System.Tuple<Group, Id>(g, i + 1),
+                requestNum: renkoCount,
+                foundNum: ref foundNum
+            );
+        }
+
+        /// <summary>
         /// メンツリスト同士を比較する
         /// 同じ構成ならtrue
         /// Mentsuの並び順、Paiの並び順は無関係とする

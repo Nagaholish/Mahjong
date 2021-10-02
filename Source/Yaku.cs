@@ -679,57 +679,6 @@ namespace Mahjong
         }
     }
     /// <summary>
-    /// TODO
-    /// 実装箇所を引っ越し
-    /// </summary>
-    public static class Ext
-    {
-        private static bool Has(
-            this IEnumerable<Mentsu> mentsu,
-            System.Func<Mentsu, bool> filter,
-            System.Tuple<Group, Id> target,
-            System.Func<Group, Id, System.Tuple<Group, Id>> selector,
-            int requestNum,
-            ref int foundNum)
-        {
-            foreach (var m in mentsu)
-            {
-                if (filter(m))
-                {
-                    foundNum += 1;
-                    if (foundNum >= requestNum)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return Has(
-                            mentsu.Except(new List<Mentsu> { m }),
-                            filter,
-                            selector(target.Item1, target.Item2),
-                            selector,
-                            requestNum,
-                            ref foundNum
-                        );
-                    }
-                }
-            }
-            return false;
-        }
-        public static bool HasRenko(this IEnumerable<Mentsu> mentsu, Group g, Id i, int requestNum)
-        {
-            int foundNum = 0;
-            return Has(
-                mentsu: mentsu,
-                filter: m => (m.IsKantsu || m.IsKotsu) && m[0].Group != Group.Jihai && m[0].IsSame(g, i),
-                target: new System.Tuple<Group, Id>(g, i),
-                selector: (g, i) => new System.Tuple<Group, Id>(g, i + 1),
-                requestNum: requestNum,
-                foundNum: ref foundNum
-            );
-        }
-    }
-    /// <summary>
     /// 三連刻
     /// </summary>
     public class SanrenkoChecker : IYakuChecker
@@ -747,7 +696,7 @@ namespace Mahjong
 
             foreach (var m in kotsuKantsu)
             {
-                if (kotsuKantsu.HasRenko(m[0].Group, m[0].Id, 3))
+                if (mentsu.HasRenko(m[0].Group, m[0].Id, 3))
                 {
                     return 2;
                 }
@@ -1118,7 +1067,7 @@ namespace Mahjong
 
             foreach (var m in kotsuKantsu)
             {
-                if (kotsuKantsu.HasRenko(m[0].Group, m[0].Id, 4))
+                if (mentsu.HasRenko(m[0].Group, m[0].Id, 4))
                 {
                     return 13;
                 }
