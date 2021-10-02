@@ -669,7 +669,7 @@ namespace Mahjong
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
-            var ankoAnkantsu = mentsu.Where(_ => _.IsAnnkantsu || _.IsAnnko);
+            var ankoAnkantsu = mentsu.Where(_ => _.IsAnkantsu || _.IsAnko);
 
             if (ankoAnkantsu.Count() < 3)
             {
@@ -1039,7 +1039,7 @@ namespace Mahjong
             if (naki) return 0;
 
             //  暗刻、暗槓が４つないと不成立
-            var ankoAnkantsu = mentsu.Where(_ => _.IsAnnkantsu || _.IsAnnko);
+            var ankoAnkantsu = mentsu.Where(_ => _.IsAnkantsu || _.IsAnko);
 
             if (ankoAnkantsu.Count() < 4)
             {

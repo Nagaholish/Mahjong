@@ -149,7 +149,7 @@ namespace Mahjong
         /// <summary>
         /// 暗刻か？
         /// </summary>
-        public bool IsAnnko
+        public bool IsAnko
         {
             get
             {
@@ -183,7 +183,7 @@ namespace Mahjong
         /// <summary>
         /// 暗槓か？
         /// </summary>
-        public bool IsAnnkantsu
+        public bool IsAnkantsu
         {
             get
             {
