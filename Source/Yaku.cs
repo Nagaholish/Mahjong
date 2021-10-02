@@ -12,20 +12,60 @@ namespace Mahjong
     {
         int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result);
     }
+
+    /// <summary>
+    /// 役属性
+    /// </summary>
+    public class YakuAttribute : System.Attribute
+    {
+        /// <summary>
+        /// 計算順
+        /// </summary>
+        public int Priority { get; private set; }
+
+        public YakuAttribute(int priority)
+        {
+            Priority = priority;
+        }
+
+        public const int SpYakuman = 200;
+        public const int Yakuman = 100;
+        public const int Normal = 10;
+    }
+    public static class YakuPriorityExtention
+    {
+        public static int Priority(this System.Type type, int ifundefined = -1)
+        {
+            var attrs = type.GetCustomAttributes(attributeType: typeof(YakuAttribute), inherit: true);
+            if (attrs != null && attrs.Length != 0)
+            {
+                foreach (var a in attrs)
+                {
+                    var attr = a as YakuAttribute;
+                    if (attr != null)
+                    {
+                        return attr.Priority;
+                    }
+                }
+            }
+            return ifundefined;
+        }
+    }
     public class YakuCheck
     {
         private IEnumerable<IYakuChecker> _checkers = null;
 
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
-            //  Sampleクラスを抽出する
+            //  IYakuChecker実装クラスを抽出する
             if (_checkers == null)
             {
                 var type = typeof(IYakuChecker);
                 var checkersType = System.Reflection.Assembly.GetAssembly(type)  //  IYakuCheckerが定義されているAssemblyを取得する
                     .GetTypes() //  Assembly内のClassを全て取得する
                     .Where(x => !x.IsInterface && type.IsAssignableFrom(x))   //interface ではなく、IYakuCheckerを実装しているクラスを抽出する
-                    ;//.ToArray();
+                    .OrderByDescending(x => x.Priority())
+                    ;
 
                 //  IYakuCheckerをインスタンス化
                 _checkers = checkersType.Select(type => System.Activator.CreateInstance(type) as IYakuChecker);
@@ -202,12 +242,13 @@ namespace Mahjong
             var m = mentsu.AgariMentsu;
             if (m == null) throw new System.Exception();
 
-            var ron = m.Where(p => p.IsRonAgari).Count();
-            if (ron > 0) return 0;
+            var ron = m.Where(p => p.IsRonAgari).Any();
+            if (ron) return 0;
 
-            var tsumo = m.Where(p => p.IsTsumoAgari).Count();
-            if (tsumo > 0) return 1;
-            return 0;
+            var tsumo = m.Where(p => p.IsTsumoAgari).Any();
+            if (tsumo) return 1;
+
+            throw new System.Exception();   //  ここに来たら不具合
         }
     }
     /// <summary>
@@ -906,6 +947,7 @@ namespace Mahjong
     /// <summary>
     /// 大三元
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisangenChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -931,6 +973,7 @@ namespace Mahjong
     /// <summary>
     /// 四暗刻
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class SuankoChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -952,6 +995,7 @@ namespace Mahjong
     /// <summary>
     /// 四連刻
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class SurenkoChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -976,6 +1020,7 @@ namespace Mahjong
     /// <summary>
     /// 四槓子
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class SukantsuChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -991,6 +1036,7 @@ namespace Mahjong
     /// <summary>
     /// 字一色
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class TsuisoChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1004,6 +1050,7 @@ namespace Mahjong
     /// <summary>
     /// 小四喜
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class ShousushiChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1036,6 +1083,7 @@ namespace Mahjong
     /// <summary>
     /// 大四喜
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisushiChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result) 
@@ -1068,6 +1116,7 @@ namespace Mahjong
     /// <summary>
     /// 緑一色
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class RyuisoChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1082,6 +1131,7 @@ namespace Mahjong
     /// <summary>
     /// 清老頭
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class ChinroutouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1098,6 +1148,7 @@ namespace Mahjong
     /// <summary>
     /// 九蓮宝燈
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class ChuurenpoutouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1144,6 +1195,7 @@ namespace Mahjong
     /// <summary>
     /// 国士無双
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class KokushimusouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1199,6 +1251,7 @@ namespace Mahjong
     /// <summary>
     /// 天和
     /// </summary>
+    [Yaku(priority: YakuAttribute.SpYakuman)]
     public class TenhouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1222,6 +1275,7 @@ namespace Mahjong
     /// <summary>
     /// 地和
     /// </summary>
+    [Yaku(priority: YakuAttribute.SpYakuman)]
     public class ChihouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1245,6 +1299,7 @@ namespace Mahjong
     /// <summary>
     /// 人和
     /// </summary>
+    [Yaku(priority: YakuAttribute.SpYakuman)]
     public class RenhouChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1268,6 +1323,7 @@ namespace Mahjong
     /// <summary>
     /// 大車輪
     /// </summary>
+    [Yaku(priority: YakuAttribute.Yakuman)]
     public class DaisharinChecker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
@@ -1313,6 +1369,7 @@ namespace Mahjong
     /// <summary>
     /// 八連荘
     /// </summary>
+    [Yaku(priority: YakuAttribute.SpYakuman)]
     public class Renchan8Checker : IYakuChecker
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
