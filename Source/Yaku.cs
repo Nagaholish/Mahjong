@@ -70,7 +70,7 @@ namespace Mahjong
     {
         private IEnumerable<IYakuChecker> _checkers = null;
 
-        public int Calculate(MentsuList mentsu, Context context, Player player)
+        public System.Collections.Generic.Dictionary<Yaku,int> Calculate(MentsuList mentsu, Context context, Player player)
         {
             //  IYakuChecker実装クラスを抽出する
             if (_checkers == null)
@@ -86,18 +86,29 @@ namespace Mahjong
                 _checkers = checkersType.Select(type => System.Activator.CreateInstance(type) as IYakuChecker);
             }
 
-            int han = 0;
-            var agari = new List<System.Tuple<IYakuChecker, int>>();
+            //  役満を計測しているか？
+            bool yakumanChecked = false;
+            //  アガリクラスと翻数を保持
+            var result = new Dictionary<Yaku, int>();
             foreach (var y in _checkers)
             {
+                var yaku = y.GetYaku();
+                //  役満を計測したのであれば、役満のみ計算する
+                if (yakumanChecked)
+                {
+                    if (!yaku.IsYakuman()) continue;
+                }
                 int r = y.Calculate(mentsu, context, player);
                 if (0 != r)
                 {
-                    agari.Add(new System.Tuple<IYakuChecker, int>(y, r));
-                    UnityEngine.Debug.Log($"agari is {y.GetType().Name}");
+                    result.Add(yaku, r);
+                    if (yaku.IsYakuman())
+                    {
+                        yakumanChecked = true;
+                    }
                 }
             }
-            return agari.Select(_ => _.Item2).Sum();
+            return result;
         }
     }
 
