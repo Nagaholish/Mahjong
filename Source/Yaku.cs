@@ -106,9 +106,9 @@ namespace Mahjong
     /// <summary>
     /// タンヤオ
     /// </summary>
-    public class TannyaoChecker : IYakuChecker
+    public class TanyaoChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Tannyao; }
+        public Yaku GetYaku() { return Yaku.Tanyao; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -294,9 +294,9 @@ namespace Mahjong
     /// <summary>
     /// 嶺上開花
     /// </summary>
-    public class RinsyankaihouChecker : IYakuChecker
+    public class RinshankaihouChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Rinsyan; }
+        public Yaku GetYaku() { return Yaku.Rinshan; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -347,8 +347,7 @@ namespace Mahjong
             }
             return 0;
         }
-    }
-    
+    }    
     /// <summary>
     /// 白
     /// </summary>
@@ -562,9 +561,9 @@ namespace Mahjong
     /// <summary>
     /// 三色同順
     /// </summary>
-    public class SansyokuChecker : IYakuChecker
+    public class SanshokuChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Sansyoku; }
+        public Yaku GetYaku() { return Yaku.Sanshoku; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -655,7 +654,7 @@ namespace Mahjong
     /// </summary>
     public class SanankoChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Sannannkou; }
+        public Yaku GetYaku() { return Yaku.Sanankou; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -668,6 +667,10 @@ namespace Mahjong
             return 2;
         }
     }
+    /// <summary>
+    /// TODO
+    /// 実装箇所を引っ越し
+    /// </summary>
     public static class Ext
     {
         private static bool Has(
@@ -720,7 +723,7 @@ namespace Mahjong
     /// </summary>
     public class SanrenkoChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Sannrenkou; }
+        public Yaku GetYaku() { return Yaku.Sanrenkou; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -807,9 +810,9 @@ namespace Mahjong
     /// <summary>
     /// 三色同ポン
     /// </summary>
-    public class SansyokudouponChecker : IYakuChecker
+    public class SanshokudouponChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Sansyokudoupon; }
+        public Yaku GetYaku() { return Yaku.Sanshokudoupon; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -896,7 +899,7 @@ namespace Mahjong
     /// </summary>
     public class ChitoitsuChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Chinnitsu; }
+        public Yaku GetYaku() { return Yaku.Chitoitsu; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -1007,7 +1010,7 @@ namespace Mahjong
     /// </summary>
     public class ChinitsuChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Chinnitsu; }
+        public Yaku GetYaku() { return Yaku.Chinitsu; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -1067,7 +1070,7 @@ namespace Mahjong
     [Yaku(priority: YakuAttribute.Yakuman)]
     public class SuankoChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Suannkou; }
+        public Yaku GetYaku() { return Yaku.Suankou; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -1134,9 +1137,9 @@ namespace Mahjong
     /// 字一色
     /// </summary>
     [Yaku(priority: YakuAttribute.Yakuman)]
-    public class TsuisoChecker : IYakuChecker
+    public class TsuisouChecker : IYakuChecker
     {
-        public Yaku GetYaku() { return Yaku.Tsuiso; }
+        public Yaku GetYaku() { return Yaku.Tsuisou; }
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
@@ -1220,7 +1223,7 @@ namespace Mahjong
     /// 緑一色
     /// </summary>
     [Yaku(priority: YakuAttribute.Yakuman)]
-    public class RyuisoChecker : IYakuChecker
+    public class RyuisouChecker : IYakuChecker
     {
         public Yaku GetYaku() { return Yaku.Ryuisou; }
 
