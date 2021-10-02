@@ -239,7 +239,16 @@ namespace Mahjong
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
-            //  TODO
+            if (!context.GetPaiManager().IsEmpty())
+            {
+                return 0;
+            }
+
+            var last = mentsu.AgariMentsu.Where(p => p.IsTsumoAgari).Any();
+            if (last)
+            {
+                return 1; 
+            }
             return 0;
         }
     }
@@ -250,7 +259,16 @@ namespace Mahjong
     {
         public int Calculate(MentsuList mentsu, Context context, Player player, ref YakuResult result)
         {
-            //  TODO
+            if (!context.GetPaiManager().IsEmpty())
+            {
+                return 0;
+            }
+
+            var last = mentsu.AgariMentsu.Where(p => p.IsRonAgari).Any();
+            if (last)
+            {
+                return 1;
+            }
             return 0;
         }
     }
