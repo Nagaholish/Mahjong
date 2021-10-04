@@ -251,13 +251,13 @@ namespace Mahjong
                 .AddInternal(new DistributedPai(g, i+1, pais.Count()))
                 .AddInternal(new DistributedPai(g, i+2, pais.Count()));
         }
-        public static List<DistributedPai> AddNakiShuntsu(this List<DistributedPai> pais, Group g, Id i)
+        public static List<DistributedPai> AddNakiShuntsu(this List<DistributedPai> pais, Group g, Id i, int nakiIndex)
         {
             int furo = pais.Count() + 1;
             return pais
-                .AddInternal(new DistributedPai(g, i + 0, pais.Count()).SetFuro(furo, naki: true))
-                .AddInternal(new DistributedPai(g, i + 1, pais.Count()).SetFuro(furo, naki: true))
-                .AddInternal(new DistributedPai(g, i + 2, pais.Count()).SetFuro(furo, naki: true));
+                .AddInternal(new DistributedPai(g, i + 0, pais.Count()).SetFuro(furo, naki: nakiIndex == 0))
+                .AddInternal(new DistributedPai(g, i + 1, pais.Count()).SetFuro(furo, naki: nakiIndex == 1))
+                .AddInternal(new DistributedPai(g, i + 2, pais.Count()).SetFuro(furo, naki: nakiIndex == 2));
         }
         public static List<DistributedPai> AddAnko(this List<DistributedPai> pais, Group g, Id i)
         {
