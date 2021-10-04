@@ -4,9 +4,44 @@ using System.Linq;
 
 namespace Mahjong
 {
+    /// <summary>
+    /// 符計算
+    /// </summary>
     public class Fu
     {
-        public int Calculate(MentsuList mentsu, Context context, Player player, int han, IEnumerable<Yaku> yakus)
+        /// <summary>
+        /// 計算
+        /// </summary>
+        /// <param name="mentsu"></param>
+        /// <param name="context"></param>
+        /// <param name="player"></param>
+        /// <param name="yakus"></param>
+        /// <returns></returns>
+        public int Calculate(MentsuList mentsu, Context context, Player player, IEnumerable<Yaku> yakus)
+        {
+            bool hasChitoitsu = yakus.Any(_ => _ == Yaku.Chitoitsu);
+
+            int fu = 0;
+            if (hasChitoitsu)
+            {
+                fu = 25;
+            }
+            else
+            {
+                fu = CalcNormalMentsuList(mentsu, context, player, yakus);
+            }
+            return fu;
+        }
+
+        /// <summary>
+        /// 通常役（七対子以外）の場合の符計算をする
+        /// </summary>
+        /// <param name="mentsu"></param>
+        /// <param name="context"></param>
+        /// <param name="player"></param>
+        /// <param name="yakus"></param>
+        /// <returns></returns>
+        private int CalcNormalMentsuList(MentsuList mentsu, Context context, Player player, IEnumerable<Yaku> yakus)
         {
             //  副底 フーテイ。必ず与えられる20符。符底ともいう
             int fu = CalcFutei();
@@ -14,10 +49,12 @@ namespace Mahjong
             //  アガリメンツ
             var agariMentsu = mentsu.AgariMentsu;
             //  鳴き
-            var naki = mentsu.Where(_ => _.IsNaki).Any();
+            var naki = mentsu.Any(_ => _.IsNaki);
+            //  ツモアガリ
+            var tsumoAgari = agariMentsu.Any(_ => _.IsTsumoAgari);
 
             //  面前加符（メンゼンカフ。門前でロン和了した場合に10符が与えられる）
-            fu += CalcMenzenKafu(agariMentsu.Any(_ => _.IsRonAgari), !naki);
+            fu += CalcMenzenKafu(!tsumoAgari, !naki);
 
             //  メンツ、雀頭による加符
             fu += CalcMentsuFu(mentsu, context, player);
@@ -26,10 +63,15 @@ namespace Mahjong
             fu += CalcAgariMentsuFu(agariMentsu);
 
             //  ピンフのチェックによるツモ符
-            fu += CalcAgariYakuFu(yakus);
+            fu += CalcAgariYakuFu(yakus, tsumoAgari);
 
-            // 喰い平和ロン上がりは３０符
-            fu = CalcKuipinhu(fu);
+            //  喰い平和ロン上がりは３０符
+            fu = CalcKuiPinhu(fu);
+
+            //  下一桁は繰り上がり
+            fu += 9;
+            fu /= 10;
+            fu *= 10;
 
             return fu;
         }
@@ -150,12 +192,15 @@ namespace Mahjong
         /// ピンフ成立の場合は計算しない
         /// </summary>
         /// <returns></returns>
-        private int CalcAgariYakuFu(IEnumerable<Yaku> yakus)
+        private int CalcAgariYakuFu(IEnumerable<Yaku> yakus, bool tsumoAgari)
         {
             bool pinhu = yakus.Any(_ => _ == Yaku.Pinhu);
             if (pinhu) return 0;
-
-            return 2;
+            if (tsumoAgari)
+            {
+                return 2;
+            }
+            return 0;
         }
         /// <summary>
         /// 最低符は30符になる
@@ -163,7 +208,7 @@ namespace Mahjong
         /// </summary>
         /// <param name="fu"></param>
         /// <returns></returns>
-        private int CalcKuipinhu(int fu)
+        private int CalcKuiPinhu(int fu)
         {
             return fu <= 20 ? 30 : fu;
         }
