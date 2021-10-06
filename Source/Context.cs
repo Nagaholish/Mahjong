@@ -141,8 +141,26 @@ namespace Mahjong
         {
             return _paiManager;
         }
+        public IEnumerable<Pai> OmoteDoras
+        {
+            get { return _omoteDoras; }
+        }
+        public IEnumerable<Pai> UraDoras
+        {
+            get { return _uraDoras; }
+        }
+        public void AddDora(Pai p)
+        {
+            _omoteDoras.Add(p);
+        }
+        public void AddUraDora(Pai p)
+        {
+            _uraDoras.Add(p);
+        }
 
         private Player[] _players = null;
         private PaiManager _paiManager = null;
+        private List<Pai> _omoteDoras = new List<Pai>(capacity: 4);
+        private List<Pai> _uraDoras = new List<Pai>(capacity: 4);
     }
 }
