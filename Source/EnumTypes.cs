@@ -139,6 +139,9 @@ namespace Mahjong
         ShaField,                   //  西　場風 
         PeiField,                   //  北　場風
 
+        //  1役特殊
+        Dora,                       //  ドラ
+
         //  2役
         Sanshoku,                   //  三色同順
         Ikkitsukan,                 //  一気通貫

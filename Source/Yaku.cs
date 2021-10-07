@@ -40,9 +40,10 @@ namespace Mahjong
             Priority = priority;
         }
 
-        public const int SpYakuman = 200;
-        public const int Yakuman = 100;
-        public const int Normal = 10;
+        public const int SpYakuman = 200;   //  天和、地和、人和など特殊な役
+        public const int Yakuman = 100;     //  いわゆる上記以外の役満
+        public const int Normal = 10;       //  通常役をさすが、属性を明示的に付与せず、undefinedの時の値にしている
+        public const int Low = 1;           //  ドラ
     }
     public static class YakuPriorityExtention
     {
@@ -1459,6 +1460,64 @@ namespace Mahjong
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
             return 0;
+        }
+    }
+    #endregion
+    #region ドラ
+    [Yaku(priority: YakuAttribute.Low)]
+    public class DoraChecker : IYakuChecker
+    {
+        class Comparer : System.Collections.Generic.IEqualityComparer<Pai>
+        {
+            public bool Equals(Pai p1, Pai p2)
+            {
+                return p1.IsSame(p2);
+            }
+            public int GetHashCode(Pai p)
+            {
+                return p.Priority;
+            }
+        }
+        public Yaku GetYaku() { return Yaku.Dora; }
+
+        public int Calculate(MentsuList mentsu, Context context, Player player)
+        {
+            //  TODO：赤ウー
+            int dora = 0;
+
+            //  牌
+            var pais = mentsu.SelectMany(m => m.Select(_ => _));
+
+            //  表ドラ
+            {
+                foreach(var p in pais)
+                {
+                    foreach(var d in context.OmoteDoras)
+                    {
+                        if (p.IsSame(d))
+                        {
+                            dora += 1;
+                        }
+                    }
+                }
+            }            
+                
+            //  裏ドラ
+            if (player.IsReach)
+            {
+                foreach (var p in pais)
+                {
+                    foreach (var d in context.UraDoras)
+                    {
+                        if (p.IsSame(d))
+                        {
+                            dora += 1;
+                        }
+                    }
+                }
+            }
+            
+            return dora;
         }
     }
     #endregion
