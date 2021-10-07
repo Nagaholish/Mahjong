@@ -81,7 +81,7 @@ namespace Mahjong.Command
         {
             var pai = context.GetPaiManager().Distribute();
 
-            context.GetFocusPlayer().Tsumo(pai);
+            context.GetCurrentTurnPlayer().Tsumo(pai);
         }
     }
     /// <summary>
@@ -92,7 +92,7 @@ namespace Mahjong.Command
         public void Do(Context context)
         {
             //TODO
-            context.GetFocusPlayer().Trash(index: 13);
+            context.GetCurrentTurnPlayer().Trash(index: 13);
         }
     }
     /// <summary>

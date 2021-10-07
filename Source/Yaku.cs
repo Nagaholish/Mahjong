@@ -45,8 +45,18 @@ namespace Mahjong
         public const int Normal = 10;       //  通常役をさすが、属性を明示的に付与せず、undefinedの時の値にしている
         public const int Low = 1;           //  ドラ
     }
+    /// <summary>
+    /// 役属性の判定順番用拡張メソッド
+    /// </summary>
     public static class YakuPriorityExtention
     {
+        /// <summary>
+        /// プライオリティを取得する
+        /// 属性が未定義なら、ifundefinedを参照する
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="ifundefined"></param>
+        /// <returns></returns>
         public static int Priority(this System.Type type, int ifundefined = -1)
         {
             var attrs = type.GetCustomAttributes(attributeType: typeof(YakuAttribute), inherit: true);
@@ -325,7 +335,7 @@ namespace Mahjong
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
-            if (!context.GetPaiManager().IsEmpty())
+            if (!context.GetPaiManager().IsEmpty)
             {
                 return 0;
             }
@@ -347,7 +357,7 @@ namespace Mahjong
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
-            if (!context.GetPaiManager().IsEmpty())
+            if (!context.GetPaiManager().IsEmpty)
             {
                 return 0;
             }
