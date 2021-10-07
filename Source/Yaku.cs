@@ -80,7 +80,7 @@ namespace Mahjong
                 var checkersType = System.Reflection.Assembly.GetAssembly(type)  //  IYakuCheckerが定義されているAssemblyを取得する
                     .GetTypes() //  Assembly内のClassを全て取得する
                     .Where(x => !x.IsInterface && type.IsAssignableFrom(x))   //interface ではなく、IYakuCheckerを実装しているクラスを抽出する
-                    .OrderByDescending(x => x.Priority())
+                    .OrderByDescending(x => x.Priority(ifundefined: YakuAttribute.Normal))
                     ;
 
                 //  IYakuCheckerをインスタンス化
