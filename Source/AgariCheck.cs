@@ -4,8 +4,19 @@ using System.Linq;
 
 namespace Mahjong
 {
+    /// <summary>
+    /// アガリチェックする
+    /// あくまでアガれる構成であるかを判定するだけ
+    /// 役や符のチェックは別処理
+    /// </summary>
     public class AgariCheck
     {
+        /// <summary>
+        /// アガリ成立判定
+        /// </summary>
+        /// <param name="pais">手持ち牌</param>
+        /// <param name="pattern">アガリパターン（複数ありえる）</param>
+        /// <returns></returns>
         public bool IsOK(IEnumerable<DistributedPai> pais, ref AgariPattern pattern)
         {
             pattern.Reset();
@@ -30,6 +41,12 @@ namespace Mahjong
             return false;
         }
 
+        /// <summary>
+        /// 国士無双アガリ判定
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="agariPattern"></param>
+        /// <returns></returns>
         public bool IsOKOfKokushimusou(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             //  副露しているものがあれば不成立
@@ -101,6 +118,13 @@ namespace Mahjong
             agariPattern.CopyIfNotContained(result);
             return true;
         }
+
+        /// <summary>
+        /// 七対子アガリ判定
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="agariPattern"></param>
+        /// <returns></returns>
         public bool IsOKOfChitoitsu(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             //  副露しているものがあれば不成立
@@ -158,6 +182,13 @@ namespace Mahjong
             }
             return true;
         }
+
+        /// <summary>
+        /// 国士無双、七対子以外のアガリ判定
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="agariPattern"></param>
+        /// <returns></returns>
         public bool IsOKOfOtherwise(IEnumerable<DistributedPai> pais, ref AgariPattern agariPattern)
         {
             bool ret = false;
@@ -277,6 +308,14 @@ namespace Mahjong
             }
             return ret;
         }
+
+        /// <summary>
+        /// paisから指定牌を取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="serial"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemovePai(IEnumerable<DistributedPai> pais, int serial)
         {
             var remove = pais.FirstOrDefault(p => p.Serial == serial);
@@ -286,6 +325,15 @@ namespace Mahjong
             }
             return pais.Except(new List<DistributedPai>() { remove });
         }
+
+        /// <summary>
+        /// paisから指定牌を取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemovePai(IEnumerable<DistributedPai> pais, Group g, Id i)
         {
             var remove = pais.FirstOrDefault(p => p.IsSame(g, i));
@@ -295,6 +343,17 @@ namespace Mahjong
             }
             return pais.Except(new List<DistributedPai>() { remove });
         }
+
+        /// <summary>
+        /// paisから指定牌を取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// 取り除けた場合はMentsuとして返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <param name="mentsu"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemovePai(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
         {
             mentsu = null;
@@ -309,6 +368,17 @@ namespace Mahjong
 
             return e1;
         }
+
+        /// <summary>
+        /// paisから指定牌をアタマとして取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// アタマをMetsuとして返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <param name="mentsu"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveHead(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
         {
             mentsu = null;
@@ -327,6 +397,17 @@ namespace Mahjong
 
             return e2;
         }
+
+        /// <summary>
+        /// paisから指定牌をコーツとして取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// コーツをMetsuとして返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <param name="mentsu"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveKotsu(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
         {
             mentsu = null;
@@ -348,6 +429,15 @@ namespace Mahjong
             
             return e3;
         }
+
+        /// <summary>
+        /// paisにある牌を1つずつチェックしてコーツとして取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// コーツをMetsuとして登録してMetsuListを返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="mentsuList"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveAllKotsu(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
             IEnumerable<DistributedPai> e = pais;
@@ -375,7 +465,16 @@ namespace Mahjong
             return e;
         }
 
-
+        /// <summary>
+        /// paisの中から指定牌を先頭としたシュンツを取り除いてあたらしいシーケンスを返す
+        /// 無い場合はnullを返す
+        /// シュンツをMentsuとして返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="g"></param>
+        /// <param name="i"></param>
+        /// <param name="mentsu"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveShuntsu(IEnumerable<DistributedPai> pais, Group g, Id i, out Mentsu mentsu)
         {
             mentsu = null;
@@ -399,6 +498,14 @@ namespace Mahjong
 
             return e3;
         }
+
+        /// <summary>
+        /// paisの中から１つずつチェックしてシュンツを取り除きあたらしいシーケンスを返す
+        /// シュンツがあればMentuListへ登録する
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="mentsuList"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveAllShuntsuInternal(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
             var e = pais;
@@ -417,15 +524,32 @@ namespace Mahjong
             }
             return e;
         }
+        /// <summary>
+        /// paisの先頭からシュンツを取り除きあたらしいシーケンスを返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="mentsuList"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveAllShuntsuFromTop(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
             return RemoveAllShuntsuInternal(pais, ref mentsuList);
         }
+        /// <summary>
+        /// paisの反対巡からシュンツを取り除きあたらしいシーケンスを返す
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="mentsuList"></param>
+        /// <returns></returns>
         private IEnumerable<DistributedPai> RemoveAllShuntsuFromTail(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
             IEnumerable<DistributedPai> e = pais.Reverse();
             return RemoveAllShuntsuInternal(pais, ref mentsuList);
         }
+        /// <summary>
+        /// paisの中から副露メンツを取り除き、mentsuListへ追加する
+        /// </summary>
+        /// <param name="pais"></param>
+        /// <param name="mentsuList"></param>
         private void RemoveFuroMentsu(IEnumerable<DistributedPai> pais, ref MentsuList mentsuList)
         {
             int s = 0;
@@ -436,7 +560,7 @@ namespace Mahjong
                     var eFuroMentsu = pais.Where(_ => p.SerialFuro == _.SerialFuro);
                     
                     var counts = eFuroMentsu.Count();
-                    UnityEngine.Debug.Assert(counts == 3 || counts == 4);
+                    if (!(counts == 3 || counts == 4)) throw new System.Exception();
 
                     var mentsu = new Mentsu();
                     if (counts == 3)

@@ -54,7 +54,7 @@ namespace Mahjong
     /// <summary>
     /// 定数
     /// </summary>
-    public enum Constants
+    public enum Constants : int
     {
         /// <summary>
         /// 各絵柄の種類数
@@ -108,6 +108,11 @@ namespace Mahjong
         /// 最大所持数
         /// </summary>
         MaxHolderCount = 16 + 2,       //  槓子(4枚) * 4 + アタマ
+
+        /// <summary>
+        /// 初期所持点数
+        /// </summary>
+        DefaultScore = 25000,
     }
     
 
@@ -186,6 +191,9 @@ namespace Mahjong
 
         MaxYaku,
     }
+    /// <summary>
+    /// Yakuの拡張メソッド
+    /// </summary>
     public static class YakuExtention
     {
         public static bool IsYakuman(this Yaku yaku)

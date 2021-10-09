@@ -3,13 +3,21 @@ using System.Collections.Generic;
 
 namespace Mahjong
 {
+    /// <summary>
+    /// ルールや場の情報の集合
+    /// および他システムへの窓口
+    /// </summary>
     public class Context
     {
+        /// <summary>
+        /// 初期化
+        /// ゲームのリセット
+        /// </summary>
         public void Initialize()
         {
             Field = 0;
-            Kyoku = 0;
-            Honba = 0;
+            Kyoku = 1;
+            Honba = 1;
             TurnCount = 0;
             CurrentTurnPlayer = 0;
             CurrentOyaPlayer = 0;
@@ -18,7 +26,7 @@ namespace Mahjong
             {
                 var p = new Player();
                 {
-                    p.Initialize(i, 25000);
+                    p.Initialize(i, (int)Constants.DefaultScore);
                 }
                 _players[i] = p;
             }
@@ -48,16 +56,51 @@ namespace Mahjong
         }
         /// <summary>
         /// 局
-        /// 東一局=Field==0 && Kyoku==0
-        /// 南オーラス=Field==1 && Kyoku==3
+        /// 東一局=Field==0 && Kyoku==1
+        /// 南オーラス=Field==1 && Kyoku==4
         /// </summary>
         public int Kyoku { get; private set; }
+        
+        /// <summary>
+        /// 本場
+        /// 一本場=1
+        /// 二本場=2
+        /// </summary>
         public int Honba { get; private set; }
 
+        /// <summary>
+        /// ターンカウント
+        /// 一人がツモして捨てるまでを1ターンとする
+        /// 1巡回ると4ターンになる
+        /// </summary>
         public int TurnCount { get; private set; }
+        
+        /// <summary>
+        /// 現在ターンのプレイヤー
+        /// </summary>
         public int CurrentTurnPlayer { get; private set; }
+
+        /// <summary>
+        /// 現在の親のプレイヤー
+        /// </summary>
         public int CurrentOyaPlayer { get; private set; }
+
+        /// <summary>
+        /// 親判定
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool IsOyaPlayer(int index)
+        {
+            return index == CurrentOyaPlayer;
+        }
+
+        /// <summary>
+        /// アガリプレイヤーのindex
+        /// 配列なのはダブロン、トリロンの可能性のため
+        /// </summary>
         public int[] WinnerPlayers { get; private set; }
+
         /// <summary>
         /// 指定プレイヤーの風牌を取得する
         /// </summary>
@@ -76,6 +119,9 @@ namespace Mahjong
             throw new System.Exception();
         }
 
+        /// <summary>
+        /// 次の巡への処理
+        /// </summary>
         public void NextTurn()
         {
             CurrentTurnPlayer += 1;
@@ -83,6 +129,10 @@ namespace Mahjong
             ++TurnCount;
         }
 
+        /// <summary>
+        /// 次の局への処理
+        /// </summary>
+        /// <param name="retry">連チャンしているならtrue</param>
         public void NextKyoku(bool retry)
         {
             if (retry)
@@ -96,27 +146,41 @@ namespace Mahjong
                 if (Kyoku > 3)
                 {
                     Field += 1;
-                    Kyoku = 0;
+                    Kyoku = 1;
                 }
-                Honba = 0;
+                Honba = 1;
                 CurrentOyaPlayer += 1;
                 CurrentOyaPlayer %= _players.Length;
                 CurrentTurnPlayer = CurrentOyaPlayer;
             }
+            TurnCount = 0;
         }
+
+        /// <summary>
+        /// 1局終了判定
+        /// </summary>
+        /// <returns></returns>
         public bool IsEndKyoku()
         {
             //  流局
             //  TODO    上がった人がいた
-            return GetPaiManager().IsEmpty();
+            return GetPaiManager().IsEmpty;
         }
+
+        /// <summary>
+        /// 半荘終了判定
+        /// </summary>
+        /// <returns></returns>
         public bool IsEndHanchan()
         {
             //  オーラス
             //  TODO    はコリ
-            return Field == 1 && Kyoku == 3;
+            return Field == 1 && Kyoku == 4;
         }
 
+        /// <summary>
+        /// プレイヤー数取得
+        /// </summary>
         public int PlayerCount
         {
             get
@@ -126,33 +190,62 @@ namespace Mahjong
             }
         }
 
-        public Player GetFocusPlayer()
+        /// <summary>
+        /// 現在ターンプレイヤーを取得
+        /// </summary>
+        /// <returns></returns>
+        public Player GetCurrentTurnPlayer()
         {
             return _players[CurrentTurnPlayer];
         }
 
+        /// <summary>
+        /// 全プレイヤー取得
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<Player> GetPlayers()
         {
             return _players;
-
         }
 
+        /// <summary>
+        /// 牌マネージャ取得
+        /// 廃止予定
+        /// </summary>
+        /// <returns></returns>
         public PaiManager GetPaiManager()
         {
             return _paiManager;
         }
+
+        /// <summary>
+        /// 表ドラ取得
+        /// 最大４つまで
+        /// </summary>
         public IEnumerable<Pai> OmoteDoras
         {
             get { return _omoteDoras; }
         }
+        /// <summary>
+        /// 裏ドラ取得
+        /// 最大４つまで
+        /// </summary>
         public IEnumerable<Pai> UraDoras
         {
             get { return _uraDoras; }
         }
+        /// <summary>
+        /// 表ドラ追加
+        /// </summary>
+        /// <param name="p"></param>
         public void AddDora(Pai p)
         {
             _omoteDoras.Add(p);
         }
+        /// <summary>
+        /// 裏ドラ追加
+        /// </summary>
+        /// <param name="p"></param>
         public void AddUraDora(Pai p)
         {
             _uraDoras.Add(p);
