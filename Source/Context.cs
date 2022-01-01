@@ -223,6 +223,14 @@ namespace Mahjong
         {
             return _paiManager;
         }
+        /// <summary>
+        /// 場の牌が空か？
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEmptyPais()
+        {
+            return _paiManager.IsEmpty();
+        }
 
         /// <summary>
         /// 表ドラ取得
