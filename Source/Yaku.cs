@@ -335,7 +335,7 @@ namespace Mahjong
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
-            if (!context.GetPaiManager().IsEmpty)
+            if (!context.IsEmptyPais())
             {
                 return 0;
             }
@@ -357,7 +357,7 @@ namespace Mahjong
 
         public int Calculate(MentsuList mentsu, Context context, Player player)
         {
-            if (!context.GetPaiManager().IsEmpty)
+            if (!context.IsEmptyPais())
             {
                 return 0;
             }

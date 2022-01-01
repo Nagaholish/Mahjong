@@ -82,32 +82,34 @@ namespace Mahjong
         /// </summary>
         MaxIdSangen = 3,
         /// <summary>
-        /// 字牌種類数
+        /// 字牌種類数=7
         /// </summary>
         MaxIdJihai = MaxIdDirection + MaxIdSangen,
 
         /// <summary>
-        /// 数字牌の総数
+        /// 数字牌の総数=9*4*3=108
         /// </summary>
         MaxPaiNumberCount = MaxIdNumber * MaxIdDirection * MaxGroupNumber,
         /// <summary>
-        /// 字牌の総数
+        /// 字牌の総数=4*4+3*4=28
         /// </summary>
         MaxPaiJihaiCount = MaxIdDirection * MaxIdDirection + MaxIdSangen * MaxIdDirection,
         /// <summary>
-        /// パイの最大数
+        /// パイの最大数=108+28=136
         /// </summary>
         MaxPaiCount = MaxPaiNumberCount + MaxPaiJihaiCount,
 
         /// <summary>
         /// 通常の所持数
+        /// 1メンツ(3枚) * 4 + アタマ
         /// </summary>
-        DefaultHolderCount = 3 * 4 + 2,    //  1メンツ(3枚) * 4 + アタマ
+        DefaultHolderCount = 3 * 4 + 2,
 
         /// <summary>
         /// 最大所持数
+        /// 槓子(4枚) * 4 + アタマ
         /// </summary>
-        MaxHolderCount = 16 + 2,       //  槓子(4枚) * 4 + アタマ
+        MaxHolderCount = 16 + 2,
 
         /// <summary>
         /// 初期所持点数

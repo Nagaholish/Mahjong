@@ -164,7 +164,7 @@ namespace Mahjong
         {
             //  流局
             //  TODO    上がった人がいた
-            return GetPaiManager().IsEmpty;
+            return _paiManager.IsEmpty();
         }
 
         /// <summary>
@@ -208,14 +208,28 @@ namespace Mahjong
             return _players;
         }
 
+        public void InitializePaiManager(IPaiManager manager)
+        {
+            if (null == manager) throw new System.Exception("PaiManager is null.");
+
+            _paiManager = manager;
+        }
         /// <summary>
         /// 牌マネージャ取得
         /// 廃止予定
         /// </summary>
         /// <returns></returns>
-        public PaiManager GetPaiManager()
+        public IPaiManager GetPaiManager()
         {
             return _paiManager;
+        }
+        /// <summary>
+        /// 場の牌が空か？
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEmptyPais()
+        {
+            return _paiManager.IsEmpty();
         }
 
         /// <summary>
@@ -252,7 +266,7 @@ namespace Mahjong
         }
 
         private Player[] _players = null;
-        private PaiManager _paiManager = null;
+        private IPaiManager _paiManager = null;
         private List<Pai> _omoteDoras = new List<Pai>(capacity: 4);
         private List<Pai> _uraDoras = new List<Pai>(capacity: 4);
     }
