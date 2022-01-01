@@ -43,6 +43,10 @@ namespace Mahjong
                     ++s;
                 }
             }
+            //  牌を初期化した数のチェック
+            if (s < 0 || s >= (int)Constants.MaxPaiCount) throw new System.ArgumentException($"serial={s} is invalid.");
+
+
 
             //  シャッフル
             if (shuffle)

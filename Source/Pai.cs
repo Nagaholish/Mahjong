@@ -110,8 +110,6 @@ namespace Mahjong
         public DistributedPai(Group g, Id i, int s)
             : base(g, i)
         {
-            if (s < 0 || s >= (int)Constants.MaxPaiCount) throw new System.ArgumentException($"serial={s} is invalid.");
-
             Serial = s;
             Reset();
         }
