@@ -54,8 +54,9 @@ namespace Mahjong
 
         /// <summary>
         /// 手持ち牌
+        /// 13牌、14牌、14牌以上になっていることもある
         /// </summary>
-        public IEnumerable<Pai> Pais
+        public IEnumerable<DistributedPai> MyPais
         {
             get { return _pais; }
         }
