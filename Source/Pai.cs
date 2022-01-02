@@ -152,6 +152,11 @@ namespace Mahjong
         public void Tsumo() { IsTsumo = true; }
 
         /// <summary>
+        /// ツモフラグをオフにする
+        /// </summary>
+        public void OffTsumo() { IsTsumo = false; }
+
+        /// <summary>
         /// 副露した？
         /// </summary>
         public bool IsFuro
