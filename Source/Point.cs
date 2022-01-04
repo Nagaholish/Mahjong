@@ -6,7 +6,7 @@ namespace Mahjong
     /// <summary>
     /// 点数計算
     /// </summary>
-    public class Point 
+    public class PointCheck
     {
         /// <summary>
         /// 各符、各飜数による点数

@@ -7,7 +7,7 @@ namespace Mahjong
     /// <summary>
     /// 符計算
     /// </summary>
-    public class Fu
+    public class FuCheck
     {
         /// <summary>
         /// 計算
