@@ -29,16 +29,18 @@ namespace Mahjong
                 return true;
             }
 
+            bool ret = false;
             //  七対子が成立しても、二盃口の可能性があるため、通常の成立もチェックする
             if (IsOKOfChitoitsu(pais, ref pattern))
             {
-                
+                ret = true;
             }
+            //  上記以外の通常役をチェックする
             if (IsOKOfOtherwise(pais, ref pattern))
             {
                 return true;
             }
-            return false;
+            return ret;
         }
 
         /// <summary>
