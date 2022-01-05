@@ -185,9 +185,20 @@ namespace Mahjong
         {
             get
             {
+                //  未初期化前に呼び出すことは禁止
                 if (_players == null) { throw new System.Exception(); }
                 return _players.Length;
             }
+        }
+
+        /// <summary>
+        /// プレイヤーの得点を取得する
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public int PlayerScore(int index)
+        {
+            return _players[index].Score;
         }
 
         /// <summary>
@@ -207,7 +218,20 @@ namespace Mahjong
         {
             return _players;
         }
+        /// <summary>
+        ///指定プレイヤーを取得
+        /// </summary>
+        /// <param name="playerIndex"></param>
+        /// <returns></returns>
+        public Player GetPlayer(int playerIndex)
+        {
+            return _players[playerIndex];
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="manager"></param>
         public void InitializePaiManager(IPaiManager manager)
         {
             if (null == manager) throw new System.Exception("PaiManager is null.");
